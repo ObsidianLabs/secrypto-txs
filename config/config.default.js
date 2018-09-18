@@ -17,7 +17,7 @@ module.exports = appInfo => {
   // 确认交易回溯次数
   config.confirmBacktrackIteration = process.env.CONFIRM_BACKTRACK_ITERATION;
 
-  config.redisTxExpire = process.env.CONFIRM_BACKTRACK_ITERATION;
+  config.redisTxExpire = process.env.REDIS_TX_EXPIRE;
 
   // add your config here
   config.middleware = [];
