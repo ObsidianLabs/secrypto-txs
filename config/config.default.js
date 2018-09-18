@@ -22,6 +22,7 @@ module.exports = appInfo => {
   // add your config here
   config.middleware = [];
   config.bull = {
+    admin: process.env.QUEUE_ADMIN,
     client: {
       host: process.env.REDIS_HOST,
       port: process.env.REDIS_PORT,
