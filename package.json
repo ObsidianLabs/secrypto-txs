@@ -28,9 +28,9 @@
     "node": ">=8.9.0"
   },
   "scripts": {
-    "start": "egg-scripts start --daemon --title=egg-server-secrypto-txs",
+    "start": "egg-scripts start --title=egg-server-secrypto-txs --port=$PORT",
     "stop": "egg-scripts stop --title=egg-server-secrypto-txs",
-    "dev": "egg-bin dev",
+    "dev": "egg-bin dev --port $PORT",
     "debug": "egg-bin debug",
     "test": "npm run lint -- --fix && npm run test-local",
     "test-local": "egg-bin test",
