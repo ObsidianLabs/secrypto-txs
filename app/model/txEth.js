@@ -3,6 +3,7 @@ module.exports = app => {
 
   const TxEthSchema = new mongoose.Schema(
     {
+      _id: String,
       blockHash: String,
       blockNumber: Number,
       from: String,
@@ -30,7 +31,6 @@ module.exports = app => {
   TxEthSchema.index({ relevant: 1, timestamp: -1 });
   const model = mongoose.model('tx_eth_', TxEthSchema);
   model.at = ts => {
-    console.log(ts);
     return mongoose.model('tx_eth_' + ts, TxEthSchema);
   };
   return model;

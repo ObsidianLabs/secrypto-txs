@@ -2,17 +2,14 @@
  * @Author: icezeros 
  * @Date: 2018-09-12 11:51:10 
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-09-13 19:33:32
+ * @Last Modified time: 2018-09-18 11:45:34
  */
 'use strict';
-const Web3 = require('web3');
-const web3Https = new Web3('https://mainnet.infura.io/wqMAgibGq1rDtBdmJ4TU');
-
 class EthQueue {
   async cacheTransaction(data, app, job) {
-    const { txHash } = data;
+    const { txHash, block } = data;
     const { redis, config } = app;
-    const txHashRedis = `tx:eth:${txHash}`;
+    const txHashRedis = `eth:tx:${txHash}`;
     if (!txHash) {
       job.finished().then(() => {
         job.remove();
@@ -21,25 +18,22 @@ class EthQueue {
     }
     const txExists = await redis.exists(txHashRedis);
     if (txExists) {
-      // const tx1 = await web3Https.eth.getTransaction(txHash);
-      // const tx2 = await redis.get(txHashRedis);
-      // let tx22;
-      // try {
-      //   tx22 = JSON.parse(tx2).blockNumber;
-      // } catch (error) {
-      //   tx22 = tx2;
-      // }
-      // console.log('----------- txExists ---------------', txHash);
-      // console.log('----------- tx1 ---------------', tx1.blockNumber);
-      // console.log('----------- tx2 ---------------', tx22);
+      job.finished().then(() => {
+        job.remove();
+      });
       return;
     }
-    const transaction = await web3Https.eth.getTransaction(txHash);
+    const transaction = await app.web3Https.eth.getTransaction(txHash);
     if (!transaction) {
-      // job.finished().then(() => {
-      //   job.remove();
-      // });
-      console.log('----------- transaction ---------------', transaction);
+      // await
+      // await job.retry();
+      await job.update({
+        ...data,
+        time: new Date(),
+        iteration: data.iteration ? (data.iteration += 3000) : 1000,
+      });
+      await app.sleep(data.iteration || 1000);
+      throw new Error(`web3Https.eth.getTransaction(txHash) error ${txHash} ${new Date()}`);
     }
     await redis.set(txHashRedis, JSON.stringify(transaction), 'EX', config.redisTxExpire);
     job.finished().then(() => {
@@ -49,16 +43,94 @@ class EthQueue {
   }
 
   async redisToMongo(data, app, job) {
-    const { txHashs, blockNumber, blockHash, timestamp } = data;
+    const { transactions, blockNumber, blockHash, timestamp } = data;
     const { redis, config } = app;
-    if (txHashs.length === 0) {
+    if (transactions.length === 0) {
       job.finished().then(() => {
         job.remove();
       });
       return;
     }
-
+    const txHashs = transactions.map(txHash => `eth:tx:${txHash}`);
     const txs = await redis.mget(txHashs);
+    const txArr = [];
+    // const txErr = [];
+    txs.forEach((tx, k) => {
+      if (tx) {
+        const tmpTx = JSON.parse(tx);
+        tmpTx._id = tmpTx.hash;
+        tmpTx.blockNumber = blockNumber;
+        tmpTx.blockHash = blockHash;
+        tmpTx.timestamp = new Date(timestamp * 1000);
+        tmpTx.relevant = [tmpTx.from, tmpTx.to];
+        delete tmpTx.txHash;
+
+        txArr.push(tmpTx);
+
+        // return tmpTx;
+      } else {
+        // return null;
+        // txErr.push({
+        //   tx,
+        //   k,
+        //   txHash: txHashs[k],
+        // });
+      }
+    });
+
+    // if (txErr.length !== 0) {
+    //   await app.model.Test.create({
+    //     blockNumber,
+    //     blockHash,
+    //     timestamp,
+    //     txErr,
+    //     txArr,
+    //   });
+    // }
+    const startWeek = app
+      .moment()
+      .startOf('w')
+      .unix();
+    try {
+      await app.model.TxEth.at(startWeek).create(txArr);
+      job.finished().then(() => {
+        job.remove();
+      });
+      return;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async filterTxs(data, app, job) {
+    const { txs, type } = data;
+    const { redis, config } = app;
+    const addresses = [];
+    for (let i = 0; i < txs.length; i++) {
+      const tx = txs[i];
+      const task = tx.relevant.map(addr => {
+        return redis.sismember('eth:address:set', addr);
+      });
+      const existses = await Promise.all(task);
+      if (existses.indexOf(1) >= 0) {
+        addresses.push(tx);
+      }
+    }
+
+    // txs.forEach(async tx => {
+    //   let matching = false;
+    //   tx.relevant.forEach(async addr => {
+    //     const addrExist = await redis.sismember('eth:address:set', addr);
+
+    //     if (addrExist) {
+    //       matching = true;
+    //       addresses.push(tx);
+    //     }
+    //   });
+    //   if (matching) {
+    //     addresses.push(tx);
+    //   }
+    // });
   }
 }
 

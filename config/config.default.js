@@ -6,17 +6,18 @@ module.exports = appInfo => {
 
   // use for cookie sign key, should change to your own and keep security
   config.keys = appInfo.name + '_1536645724532_5076';
-  config.web3HttpUrl = 'https://mainnet.infura.io/wqMAgibGq1rDtBdmJ4TU';
-  // redis缓存block过期时长
-  config.redisBlockExpire = 3600;
-  // 区块回溯次数
-  config.backtrackIteration = 20;
-  // 通过web3获取区块失败重试次数
-  config.getBlockIterationTimes = 3;
-  // 确认交易回溯次数
-  config.confirmBacktrackIteration = 5;
+  config.web3HttpUrl = process.env.WEB3HTTPURL;
 
-  config.redisTxExpire = 3600;
+  // redis缓存block过期时长
+  config.redisBlockExpire = process.env.REDIS_BLOCK_EXPIRE;
+  // 区块回溯次数
+  config.backtrackIteration = process.env.BACKTRACK_ITERATION;
+  // 通过web3获取区块失败重试次数
+  config.getBlockIterationTimes = process.env.GETBLOCK_ITERATION_TIMES;
+  // 确认交易回溯次数
+  config.confirmBacktrackIteration = process.env.CONFIRM_BACKTRACK_ITERATION;
+
+  config.redisTxExpire = process.env.CONFIRM_BACKTRACK_ITERATION;
 
   // add your config here
   config.middleware = [];
@@ -26,20 +27,16 @@ module.exports = appInfo => {
       port: process.env.REDIS_PORT,
       password: process.env.REDIS_PASSWORD,
       db: process.env.REDIS_QUEUE_DB,
-      // host: '127.0.0.1',
-      // port: 6379,
-      // password: '',
-      // db: 4,
     },
   };
 
   config.redis = {
     // instanceName. See below
     client: {
-      port: 6379, // Redis port
-      host: '127.0.0.1', // Redis host
-      password: '',
-      db: 1,
+      host: process.env.REDIS_HOST, // Redis host
+      port: process.env.REDIS_PORT, // Redis port
+      password: process.env.REDIS_PASSWORD,
+      db: process.env.REDIS_DB,
     },
   };
 
