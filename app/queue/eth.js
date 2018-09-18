@@ -2,7 +2,7 @@
  * @Author: icezeros 
  * @Date: 2018-09-12 11:51:10 
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-09-18 11:45:34
+ * @Last Modified time: 2018-09-18 13:42:39
  */
 'use strict';
 class EthQueue {
@@ -109,7 +109,7 @@ class EthQueue {
     for (let i = 0; i < txs.length; i++) {
       const tx = txs[i];
       const task = tx.relevant.map(addr => {
-        return redis.sismember('eth:address:set', addr);
+        return redis.sismember('eth:address:set', addr.toLowerCase());
       });
       const existses = await Promise.all(task);
       if (existses.indexOf(1) >= 0) {
