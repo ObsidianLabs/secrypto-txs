@@ -2,7 +2,7 @@
  * @Author: icezeros
  * @Date: 2018-09-11 16:50:45
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-09-18 11:27:05
+ * @Last Modified time: 2018-09-18 18:10:50
  */
 'use strict';
 const Subscription = require('egg').Subscription;
@@ -41,6 +41,7 @@ class EthSycnBlockCache extends Subscription {
         return;
       }
     }
+    console.log('======== config.redisBlockExpire ===========', config.redisBlockExpire);
     await redis.set(`eth:block:${block.hash}`, JSON.stringify(block), 'EX', config.redisBlockExpire);
     //TODO:Queue Task eth.cacheTransaction
     this.cacheTransaction(block.transactions, block);
