@@ -2,7 +2,7 @@
  * @Author: icezeros 
  * @Date: 2018-09-12 11:51:10 
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-09-21 17:32:02
+ * @Last Modified time: 2018-09-21 17:51:01
  */
 'use strict';
 const OneSignal = require('onesignal-node');
@@ -235,11 +235,11 @@ class EthQueue {
           }
         }
       });
+      console.log('=========pushObj==========', pushObj);
 
       if (!pushObj.sent && !pushObj.recieve) {
         return;
       }
-      console.log('======= pushObj ===========', pushObj);
       let notificationSent;
       let notificationRecieve;
 
@@ -285,7 +285,8 @@ class EthQueue {
           });
         }
       }
-
+      console.log('=========notificationSent==========', notificationSent);
+      console.log('=========notificationRecieve==========', notificationRecieve);
       if (notificationSent) {
         const result = await oneSignalClient.sendNotification(notificationSent);
         if (result.httpResponse.statusCode !== 200) {
