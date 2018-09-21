@@ -2,9 +2,18 @@
  * @Author: icezeros 
  * @Date: 2018-09-12 11:51:10 
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-09-20 20:04:23
+ * @Last Modified time: 2018-09-21 15:50:03
  */
 'use strict';
+const OneSignal = require('onesignal-node');
+const Notification = OneSignal.Notification;
+const oneSignalClient = new OneSignal.Client({
+  app: {
+    appId: process.env.ONESIGNAL_APPID,
+    appAuthKey: process.env.ONESIGNAL_APP_AUTH_KEY,
+  },
+});
+
 class EthQueue {
   async cacheTransaction(data, app, job) {
     const { txHash, block } = data;
@@ -159,7 +168,7 @@ class EthQueue {
   async appPush(data, app, job) {
     try {
       const { tx, type, pushRetryArr = [] } = data;
-      const { oneSignalClient, Notification, model, _, ethStandard } = app;
+      const { model, _, ethStandard } = app;
       const value = Number(tx.value) / ethStandard;
 
       // 判断任务是否是失败重试的任务
@@ -202,6 +211,7 @@ class EthQueue {
         sent: null,
         recieve: null,
       };
+
       wallets.forEach(wallet => {
         // 过滤出有oneSignalId的用户
         const user = _.find(users, user => {
@@ -274,6 +284,7 @@ class EthQueue {
           });
         }
       }
+
       if (notificationSent) {
         const result = await oneSignalClient.sendNotification(notificationSent);
         if (result.httpResponse.statusCode !== 200) {
@@ -281,12 +292,11 @@ class EthQueue {
         }
       }
       if (notificationRecieve) {
-        const result = await oneSignalClient.sendNotification(notificationRecieve);
+        const result = await oneSignalClient.sendNotification(notificationRecieve, result.httpResponse.statusCode);
         if (result.httpResponse.statusCode !== 200) {
           pushRetryArr.push(notificationRecieve);
         }
       }
-
       if (pushRetryArr.length > 0) {
         await job.update({
           ...data,
