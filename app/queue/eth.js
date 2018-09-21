@@ -2,7 +2,7 @@
  * @Author: icezeros 
  * @Date: 2018-09-12 11:51:10 
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-09-21 17:51:01
+ * @Last Modified time: 2018-09-21 18:01:35
  */
 'use strict';
 const OneSignal = require('onesignal-node');
@@ -153,6 +153,8 @@ class EthQueue {
     }
 
     txsFilter.forEach(tx => {
+      console.log('=========filterTxs tx==========', tx);
+
       app.queue.eth.appPush({
         tx,
         type,
@@ -170,6 +172,7 @@ class EthQueue {
       const { tx, type, pushRetryArr = [] } = data;
       const { model, _, ethStandard } = app;
       const value = Number(tx.value) / ethStandard;
+      console.log('=========appPush tx==========', tx);
 
       // 判断任务是否是失败重试的任务
       if (pushRetryArr.length > 0) {
