@@ -2,7 +2,7 @@
  * @Author: icezeros 
  * @Date: 2018-09-12 11:51:10 
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-09-21 18:26:46
+ * @Last Modified time: 2018-09-21 18:59:39
  */
 'use strict';
 const OneSignal = require('onesignal-node');
@@ -44,6 +44,8 @@ class EthQueue {
       await app.sleep(data.iteration || 1000);
       throw new Error(`web3Https.eth.getTransaction(txHash) error ${txHash} ${new Date()}`);
     }
+    transaction.from ? (transaction.from = transaction.from.toLowerCase()) : '';
+    transaction.to ? (transaction.to = transaction.to.toLowerCase()) : '';
     await redis.set(txHashRedis, JSON.stringify(transaction), 'EX', config.redisTxExpire);
     // TODO:这里之过滤出了ETH转账，合约交易 TO为null
     if (transaction.from && transaction.to) {
@@ -51,7 +53,7 @@ class EthQueue {
         txs: [
           {
             ...transaction,
-            relevant: [transaction.from.toLowerCase(), transaction.to.toLowerCase()],
+            relevant: [transaction.from, transaction.to],
           },
         ],
         type: 'pending',
@@ -90,7 +92,7 @@ class EthQueue {
         tmpTx.blockNumber = blockNumber;
         tmpTx.blockHash = blockHash;
         tmpTx.timestamp = new Date(timestamp * 1000);
-        tmpTx.relevant = [tmpTx.from.to.toLowerCase(), (tmpTx.to && tmpTx.to.toLowerCase()) || null];
+        tmpTx.relevant = [tmpTx.from.to, tmpTx.to];
         delete tmpTx.txHash;
 
         txArr.push(tmpTx);
@@ -142,7 +144,7 @@ class EthQueue {
     for (let i = 0; i < txs.length; i++) {
       const tx = txs[i];
       const task = tx.relevant.map(addr => {
-        return redis.sismember('eth:address:set', addr.toLowerCase());
+        return redis.sismember('eth:address:set', (addr && addr.toLowerCase()) || null);
       });
       const addrExistses = await Promise.all(task);
 
