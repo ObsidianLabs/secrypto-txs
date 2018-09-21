@@ -2,7 +2,7 @@
  * @Author: icezeros 
  * @Date: 2018-09-12 11:51:10 
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-09-21 18:01:35
+ * @Last Modified time: 2018-09-21 18:26:46
  */
 'use strict';
 const OneSignal = require('onesignal-node');
@@ -51,7 +51,7 @@ class EthQueue {
         txs: [
           {
             ...transaction,
-            relevant: [transaction.from, transaction.to],
+            relevant: [transaction.from.toLowerCase(), transaction.to.toLowerCase()],
           },
         ],
         type: 'pending',
@@ -90,7 +90,7 @@ class EthQueue {
         tmpTx.blockNumber = blockNumber;
         tmpTx.blockHash = blockHash;
         tmpTx.timestamp = new Date(timestamp * 1000);
-        tmpTx.relevant = [tmpTx.from, tmpTx.to];
+        tmpTx.relevant = [tmpTx.from.to.toLowerCase(), (tmpTx.to && tmpTx.to.toLowerCase()) || null];
         delete tmpTx.txHash;
 
         txArr.push(tmpTx);
