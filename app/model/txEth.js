@@ -18,7 +18,7 @@ module.exports = app => {
       s: String,
       transactionIndex: Number,
       v: String,
-      value: Number,
+      value: String,
     },
     {
       typeKey: '$type',
