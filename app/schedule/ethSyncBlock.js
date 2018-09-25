@@ -2,7 +2,7 @@
  * @Author: icezeros
  * @Date: 2018-09-11 16:50:45
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-09-25 10:41:47
+ * @Last Modified time: 2018-09-25 10:49:02
  */
 'use strict';
 const Subscription = require('egg').Subscription;
@@ -41,8 +41,6 @@ class EthSycnBlockCache extends Subscription {
         return;
       }
     }
-
-    console.log('======= config.redisBlockExpire =========', config.redisBlockExpire);
 
     await redis.set(`eth:block:${block.hash}`, JSON.stringify(block), 'EX', config.redisBlockExpire);
     //TODO:Queue Task eth.cacheTransaction
@@ -109,7 +107,7 @@ class EthSycnBlockCache extends Subscription {
         timestamp: block.timestamp,
       });
       block.confirmed = true;
-      await redis.set(`eth:block:${hash}`, JSON.stringify(block));
+      await redis.set(`eth:block:${hash}`, JSON.stringify(block), 'EX', config.redisBlockExpire);
       // console.log('==========`eth:block:${hash}`===============', `eth:block:${hash}`);
       this.confirmBacktrack(null, block.parentHash, iteration + 1);
     }
