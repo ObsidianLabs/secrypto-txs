@@ -2,7 +2,7 @@
  * @Author: icezeros 
  * @Date: 2018-09-12 11:51:10 
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-09-21 19:30:38
+ * @Last Modified time: 2018-09-25 10:54:37
  */
 'use strict';
 const OneSignal = require('onesignal-node');
@@ -13,7 +13,6 @@ const oneSignalClient = new OneSignal.Client({
     appAuthKey: process.env.ONESIGNAL_APP_AUTH_KEY,
   },
 });
-
 class EthQueue {
   async cacheTransaction(data, app, job) {
     const { txHash, block } = data;
@@ -238,6 +237,9 @@ class EthQueue {
         }
       });
 
+      console.log('========== type ===============', type);
+      console.log('========== pushObj ===============', pushObj);
+
       if (!pushObj.sent && !pushObj.recieve) {
         return;
       }
@@ -286,6 +288,8 @@ class EthQueue {
           });
         }
       }
+      console.log('========== notificationSent ===============', notificationSent);
+      console.log('========== notificationRecieve ===============', notificationRecieve);
       if (notificationSent) {
         const result = await oneSignalClient.sendNotification(notificationSent);
         if (result.httpResponse.statusCode !== 200) {
