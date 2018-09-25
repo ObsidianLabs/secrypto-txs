@@ -2,7 +2,7 @@
  * @Author: icezeros 
  * @Date: 2018-09-12 11:51:10 
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-09-25 12:33:11
+ * @Last Modified time: 2018-09-25 12:55:11
  */
 'use strict';
 const OneSignal = require('onesignal-node');
@@ -93,7 +93,6 @@ class EthQueue {
         tmpTx.blockNumber = blockNumber;
         tmpTx.blockHash = blockHash;
         tmpTx.timestamp = new Date(timestamp * 1000);
-        tmpTx.relevant = [tmpTx.from.to, tmpTx.to];
         delete tmpTx.txHash;
 
         txArr.push(tmpTx);
