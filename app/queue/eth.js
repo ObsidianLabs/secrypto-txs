@@ -2,7 +2,7 @@
  * @Author: icezeros 
  * @Date: 2018-09-12 11:51:10 
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-09-25 12:55:11
+ * @Last Modified time: 2018-09-25 18:28:07
  */
 'use strict';
 const OneSignal = require('onesignal-node');
@@ -170,10 +170,8 @@ class EthQueue {
   async appPush(data, app, job) {
     try {
       const { tx, type, pushRetryArr = [] } = data;
-      console.log('========== data ===============', data);
-
-      const { model, _, ethStandard } = app;
-      const value = Number(tx.value) / ethStandard;
+      const { model, _, web3Https } = app;
+      const value = web3Https.utils.fromWei(tx.value, 'ether');
 
       // 判断任务是否是失败重试的任务
       if (pushRetryArr.length > 0) {
@@ -215,9 +213,6 @@ class EthQueue {
         sent: null,
         recieve: null,
       };
-      console.log('========== wallets ===============', wallets);
-      console.log('========== users ===============', users);
-
       wallets.forEach(wallet => {
         // 过滤出有oneSignalId的用户
         const user = _.find(users, user => {
@@ -241,10 +236,6 @@ class EthQueue {
           }
         }
       });
-
-      console.log('========== type ===============', type);
-      console.log('========== pushObj ===============', pushObj);
-
       if (!pushObj.sent && !pushObj.recieve) {
         return;
       }
@@ -293,8 +284,6 @@ class EthQueue {
           });
         }
       }
-      console.log('========== notificationSent ===============', notificationSent);
-      console.log('========== notificationRecieve ===============', notificationRecieve);
       if (notificationSent) {
         const result = await oneSignalClient.sendNotification(notificationSent);
         if (result.httpResponse.statusCode !== 200) {
