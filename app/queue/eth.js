@@ -2,7 +2,7 @@
  * @Author: icezeros 
  * @Date: 2018-09-12 11:51:10 
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-09-25 12:02:46
+ * @Last Modified time: 2018-09-25 12:33:11
  */
 'use strict';
 const OneSignal = require('onesignal-node');
@@ -171,6 +171,8 @@ class EthQueue {
   async appPush(data, app, job) {
     try {
       const { tx, type, pushRetryArr = [] } = data;
+      console.log('========== data ===============', data);
+
       const { model, _, ethStandard } = app;
       const value = Number(tx.value) / ethStandard;
 
@@ -214,6 +216,8 @@ class EthQueue {
         sent: null,
         recieve: null,
       };
+      console.log('========== wallets ===============', wallets);
+      console.log('========== users ===============', users);
 
       wallets.forEach(wallet => {
         // 过滤出有oneSignalId的用户
