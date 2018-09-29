@@ -2,12 +2,12 @@
  * @Author: icezeros
  * @Date: 2018-09-11 16:50:45
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-09-25 10:49:02
+ * @Last Modified time: 2018-09-29 18:44:43
  */
 'use strict';
 const Subscription = require('egg').Subscription;
 
-class EthSycnBlockCache extends Subscription {
+class Eth extends Subscription {
   // 通过 schedule 属性来设置定时任务的执行间隔等配置
   static get schedule() {
     return {
@@ -20,8 +20,8 @@ class EthSycnBlockCache extends Subscription {
 
   // subscribe 是真正定时任务执行时被运行的函数
   async subscribe() {
-    // console.log(this.app.moment());
-    const newBlockNumber = await this.ctx.app.web3Https.eth.getBlockNumber();
+    console.log(this.app.moment());
+    const newBlockNumber = await this.ctx.app.web3.eth.getBlockNumber();
     this.backtrack(newBlockNumber);
     this.confirmBacktrack(newBlockNumber - 20);
   }
@@ -49,7 +49,7 @@ class EthSycnBlockCache extends Subscription {
     if (parentBlockExist) {
       return;
     }
-    this.backtrack(null, block.parentHash, iteration + 1);
+    await this.backtrack(null, block.parentHash, iteration + 1);
   }
 
   async getBlock(blockNumberOrHash) {
@@ -57,7 +57,7 @@ class EthSycnBlockCache extends Subscription {
     let iteration = 0;
     let action = true;
     while (action && iteration < config.getBlockIterationTimes) {
-      const block = await this.ctx.app.web3Https.eth.getBlock(blockNumberOrHash);
+      const block = await this.ctx.app.web3.eth.getBlock(blockNumberOrHash);
       if (!block) {
         iteration++;
         continue;
@@ -108,11 +108,10 @@ class EthSycnBlockCache extends Subscription {
       });
       block.confirmed = true;
       await redis.set(`eth:block:${hash}`, JSON.stringify(block), 'EX', config.redisBlockExpire);
-      // console.log('==========`eth:block:${hash}`===============', `eth:block:${hash}`);
       this.confirmBacktrack(null, block.parentHash, iteration + 1);
     }
     return;
   }
 }
 
-module.exports = EthSycnBlockCache;
+module.exports = Eth;

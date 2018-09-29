@@ -2,11 +2,15 @@
  * @Author: icezeros 
  * @Date: 2018-09-12 11:51:10 
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-09-25 18:28:07
+ * @Last Modified time: 2018-09-29 15:47:14
  */
 'use strict';
 const OneSignal = require('onesignal-node');
+const InputDataDecoder = require('ethereum-input-data-decoder');
+const erc20AbiJson = require('../data/erc20Abi.json');
 const Notification = OneSignal.Notification;
+const decoder = new InputDataDecoder(erc20AbiJson);
+
 const oneSignalClient = new OneSignal.Client({
   app: {
     appId: process.env.ONESIGNAL_APPID,
@@ -16,7 +20,9 @@ const oneSignalClient = new OneSignal.Client({
 class EthQueue {
   async cacheTransaction(data, app, job) {
     const { txHash, block } = data;
-    const { redis, config } = app;
+    const { redis, config, web3, cache, BigNumber, model } = app;
+    // const { fromWei, hexToNumberString, BN, isAddress, isBigNumber, isBN } = web3.utils;
+    const { ethErc20 } = cache;
     const txHashRedis = `eth:tx:${txHash}`;
     if (!txHash) {
       job.finished().then(() => {
@@ -31,7 +37,7 @@ class EthQueue {
       });
       return;
     }
-    const transaction = await app.web3Https.eth.getTransaction(txHash);
+    const transaction = await web3.eth.getTransaction(txHash);
     if (!transaction) {
       // await
       // await job.retry();
@@ -41,25 +47,74 @@ class EthQueue {
         iteration: data.iteration ? (data.iteration += 3000) : 1000,
       });
       await app.sleep(data.iteration || 1000);
-      throw new Error(`web3Https.eth.getTransaction(txHash) error ${txHash} ${new Date()}`);
+      throw new Error(`web3.eth.getTransaction(txHash) error ${txHash} ${new Date()}`);
     }
-    const addrFrom = transaction.from ? transaction.from.toLowerCase() : null;
-    const addrTo = transaction.to ? transaction.to.toLowerCase() : null;
+    // 过滤出 to=null   to=null为新创建的合约
+    if (!transaction.from || !transaction.to) {
+      job.finished().then(() => {
+        job.remove();
+      });
+      return;
+    }
+    const addrFrom = transaction.from.toLowerCase();
+    const addrTo = transaction.to.toLowerCase();
     transaction.from = addrFrom;
     transaction.to = addrTo;
+    transaction.symbol = 'ETH';
     transaction.relevant = [addrFrom, addrTo];
+    transaction.decimals = 18;
+    // console.log('=========transaction.input.indexOf()============ ', transaction.input.indexOf('0xa9059cbb'));
+    if (transaction.input.indexOf('0xa9059cbb') > -1) {
+      // let erc20 = ethErc20[addrTo];
+      let erc20 = await model.EthErc20.findOne({ _id: addrTo }).lean();
+      // let ercDecodeFlag = true;
+      if (!erc20) {
+        try {
+          const contract = new web3.eth.Contract(erc20AbiJson, addrTo);
+          const symbol = await contract.methods.symbol().call();
+          const name = await contract.methods.name().call();
+          const decimals = await contract.methods.decimals().call();
+          const EthErc20Data = {
+            _id: addrTo,
+            name,
+            decimals,
+            symbol,
+            icon: '',
+          };
+          erc20 = EthErc20Data;
+          // ethErc20[addrTo] = EthErc20Data;
+          erc20 = await model.EthErc20.create(EthErc20Data);
+        } catch (error) {
+          // ercDecodeFlag = false;
+          await redis.sadd('eth:address:ttt', `${addrTo}:${error.message}`);
+        }
+      }
+
+      if (erc20) {
+        const decodedData = decoder.decodeData(transaction.input);
+        if (decodedData.name === 'transfer') {
+          const erc20RecieveAddr = `0x${decodedData.inputs[0].toLowerCase()}`;
+          const erc20RecValue = BigNumber(decodedData.inputs[1]).toFixed(0);
+          transaction.symbol = erc20.symbol;
+          transaction.decimals = erc20.decimals;
+          transaction.relevant.push(erc20RecieveAddr);
+          transaction.tokenValue = erc20RecValue;
+        }
+      }
+    }
+
     await redis.set(txHashRedis, JSON.stringify(transaction), 'EX', config.redisTxExpire);
     // TODO:这里之过滤出了ETH转账，合约交易 TO为null
-    if (transaction.from && transaction.to) {
-      app.queue.eth.filterTxs({
-        txs: [
-          {
-            ...transaction,
-          },
-        ],
-        type: 'pending',
-      });
-    }
+    // console.log(ethErc20);
+
+    app.queue.eth.filterTxs({
+      txs: [
+        {
+          ...transaction,
+        },
+      ],
+      type: 'pending',
+    });
 
     job.finished().then(() => {
       job.remove();
@@ -170,9 +225,15 @@ class EthQueue {
   async appPush(data, app, job) {
     try {
       const { tx, type, pushRetryArr = [] } = data;
-      const { model, _, web3Https } = app;
-      const value = web3Https.utils.fromWei(tx.value, 'ether');
-
+      const { model, _, web3, BigNumber } = app;
+      const { head, last } = _;
+      const { symbol, decimals = 18, relevant, value, tokenValue } = tx;
+      const sentAddr = head(relevant);
+      const receiveAddr = last(relevant);
+      const pushValue = BigNumber(value !== '0' ? value : tokenValue)
+        .dividedBy(10 ** (decimals || 0))
+        .toString();
+      console.log('------------tx---------------', tx);
       // 判断任务是否是失败重试的任务
       if (pushRetryArr.length > 0) {
         const task = pushRetryArr.map(nf => oneSignalClient.sendNotification(nf));
@@ -222,13 +283,13 @@ class EthQueue {
         });
 
         if (user) {
-          if (wallet.address === tx.from) {
+          if (wallet.address === sentAddr) {
             pushObj.sent = {
               user,
               wallet,
             };
           }
-          if (wallet.address === tx.to) {
+          if (wallet.address === receiveAddr) {
             pushObj.recieve = {
               user,
               wallet,
@@ -249,8 +310,8 @@ class EthQueue {
             'zh-Hans': `${pushObj.recieve.wallet.name}`,
           },
           contents: {
-            en: `An income of ${value} ETH to your wallet is on the way...`,
-            'zh-Hans': `一笔${value} ETH的入账正在处理中……`,
+            en: `An income of ${pushValue} ${symbol} to your wallet is on the way...`,
+            'zh-Hans': `一笔${pushValue} ${symbol}的入账正在处理中……`,
           },
           include_player_ids: [pushObj.recieve.user.oneSignalId],
         });
@@ -264,8 +325,8 @@ class EthQueue {
               'zh-Hans': `${pushObj.sent.wallet.name}`,
             },
             contents: {
-              en: `Your transfer of ${value} ETH has been confirmed.`,
-              'zh-Hans': `您的转账${value} ETH已确认完成。`,
+              en: `Your transfer of ${pushValue} ${symbol} has been confirmed.`,
+              'zh-Hans': `您的转账${pushValue} ${symbol}已确认完成。`,
             },
             include_player_ids: [pushObj.sent.user.oneSignalId],
           });
@@ -277,20 +338,22 @@ class EthQueue {
               'zh-Hans': `${pushObj.recieve.wallet.name}`,
             },
             contents: {
-              en: `Your wallet just received ${value} ETH.`,
-              'zh-Hans': `您的钱包已确认收到${value} ETH。`,
+              en: `Your wallet just received ${pushValue} ${symbol}.`,
+              'zh-Hans': `您的钱包已确认收到${pushValue} ${symbol}。`,
             },
             include_player_ids: [pushObj.recieve.user.oneSignalId],
           });
         }
       }
       if (notificationSent) {
+        console.log('============= notificationSent ===================', notificationSent);
         const result = await oneSignalClient.sendNotification(notificationSent);
         if (result.httpResponse.statusCode !== 200) {
           pushRetryArr.push(notificationSent);
         }
       }
       if (notificationRecieve) {
+        console.log('============= notificationRecieve ===================', notificationRecieve);
         const result = await oneSignalClient.sendNotification(notificationRecieve);
         if (result.httpResponse.statusCode !== 200) {
           pushRetryArr.push(notificationRecieve);
