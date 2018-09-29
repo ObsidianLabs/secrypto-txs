@@ -10,6 +10,8 @@ module.exports = app => {
       to: String,
       relevant: Array,
       timestamp: Date,
+      symbol: String,
+      tokenValue: String,
       gas: Number,
       gasPrice: Number,
       input: String,
