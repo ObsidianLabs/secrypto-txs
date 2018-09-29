@@ -2,7 +2,7 @@
  * @Author: icezeros 
  * @Date: 2018-09-12 11:51:10 
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-09-29 15:47:14
+ * @Last Modified time: 2018-09-29 23:01:25
  */
 'use strict';
 const OneSignal = require('onesignal-node');
@@ -233,7 +233,7 @@ class EthQueue {
       const pushValue = BigNumber(value !== '0' ? value : tokenValue)
         .dividedBy(10 ** (decimals || 0))
         .toString();
-      console.log('------------tx---------------', tx);
+      // console.log('------------tx---------------', tx);
       // 判断任务是否是失败重试的任务
       if (pushRetryArr.length > 0) {
         const task = pushRetryArr.map(nf => oneSignalClient.sendNotification(nf));
@@ -346,14 +346,12 @@ class EthQueue {
         }
       }
       if (notificationSent) {
-        console.log('============= notificationSent ===================', notificationSent);
         const result = await oneSignalClient.sendNotification(notificationSent);
         if (result.httpResponse.statusCode !== 200) {
           pushRetryArr.push(notificationSent);
         }
       }
       if (notificationRecieve) {
-        console.log('============= notificationRecieve ===================', notificationRecieve);
         const result = await oneSignalClient.sendNotification(notificationRecieve);
         if (result.httpResponse.statusCode !== 200) {
           pushRetryArr.push(notificationRecieve);
