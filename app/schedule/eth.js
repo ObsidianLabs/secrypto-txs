@@ -2,7 +2,7 @@
  * @Author: icezeros
  * @Date: 2018-09-11 16:50:45
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-09-29 18:44:43
+ * @Last Modified time: 2018-09-29 23:01:39
  */
 'use strict';
 const Subscription = require('egg').Subscription;
@@ -20,7 +20,6 @@ class Eth extends Subscription {
 
   // subscribe 是真正定时任务执行时被运行的函数
   async subscribe() {
-    console.log(this.app.moment());
     const newBlockNumber = await this.ctx.app.web3.eth.getBlockNumber();
     this.backtrack(newBlockNumber);
     this.confirmBacktrack(newBlockNumber - 20);
