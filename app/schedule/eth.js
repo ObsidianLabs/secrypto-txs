@@ -2,7 +2,7 @@
  * @Author: icezeros
  * @Date: 2018-09-11 16:50:45
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-09-29 23:01:39
+ * @Last Modified time: 2018-10-08 11:05:58
  */
 'use strict';
 const Subscription = require('egg').Subscription;
@@ -107,7 +107,7 @@ class Eth extends Subscription {
       });
       block.confirmed = true;
       await redis.set(`eth:block:${hash}`, JSON.stringify(block), 'EX', config.redisBlockExpire);
-      this.confirmBacktrack(null, block.parentHash, iteration + 1);
+      await this.confirmBacktrack(null, block.parentHash, iteration + 1);
     }
     return;
   }
