@@ -2,7 +2,7 @@
  * @Author: icezeros 
  * @Date: 2018-09-12 11:51:10 
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-10-08 14:06:59
+ * @Last Modified time: 2018-10-08 15:53:14
  */
 'use strict';
 const OneSignal = require('onesignal-node');
@@ -272,6 +272,9 @@ class EthQueue {
       const wallets = await model.Wallet.find({ address: tx.relevant }).lean();
       const userIds = wallets.map(wallet => wallet.userId);
       if (userIds.length === 0) {
+        job.finished().then(() => {
+          job.remove();
+        });
         return;
       }
       const users = await model.User.find({ userId: userIds }).lean();
@@ -303,6 +306,9 @@ class EthQueue {
         }
       });
       if (!pushObj.sent && !pushObj.recieve) {
+        job.finished().then(() => {
+          job.remove();
+        });
         return;
       }
       let notificationSent;
