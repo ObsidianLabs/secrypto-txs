@@ -2,7 +2,7 @@
  * @Author: icezeros 
  * @Date: 2018-09-12 11:51:10 
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-09-29 23:01:25
+ * @Last Modified time: 2018-10-08 14:06:59
  */
 'use strict';
 const OneSignal = require('onesignal-node');
@@ -105,7 +105,6 @@ class EthQueue {
 
     await redis.set(txHashRedis, JSON.stringify(transaction), 'EX', config.redisTxExpire);
     // TODO:这里之过滤出了ETH转账，合约交易 TO为null
-    // console.log(ethErc20);
 
     app.queue.eth.filterTxs({
       txs: [
@@ -233,6 +232,12 @@ class EthQueue {
       const pushValue = BigNumber(value !== '0' ? value : tokenValue)
         .dividedBy(10 ** (decimals || 0))
         .toString();
+      if (!pushValue) {
+        job.finished().then(() => {
+          job.remove();
+        });
+        return;
+      }
       // console.log('------------tx---------------', tx);
       // 判断任务是否是失败重试的任务
       if (pushRetryArr.length > 0) {
