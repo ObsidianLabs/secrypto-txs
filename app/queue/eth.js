@@ -2,7 +2,7 @@
  * @Author: icezeros 
  * @Date: 2018-09-12 11:51:10 
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-10-08 15:53:14
+ * @Last Modified time: 2018-10-09 10:39:45
  */
 'use strict';
 const OneSignal = require('onesignal-node');
@@ -187,6 +187,7 @@ class EthQueue {
 
       return;
     } catch (error) {
+      throw error;
       console.log(error);
     }
   }
