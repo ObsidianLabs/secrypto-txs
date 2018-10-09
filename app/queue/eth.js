@@ -2,7 +2,7 @@
  * @Author: icezeros 
  * @Date: 2018-09-12 11:51:10 
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-10-09 10:39:45
+ * @Last Modified time: 2018-10-09 10:47:01
  */
 'use strict';
 const OneSignal = require('onesignal-node');
@@ -180,7 +180,7 @@ class EthQueue {
       job.finished().then(() => {
         job.remove();
       });
-      await app.queue.eth.filterTxs({
+      app.queue.eth.filterTxs({
         txs: txPushArr,
         type: 'confirmed',
       });
