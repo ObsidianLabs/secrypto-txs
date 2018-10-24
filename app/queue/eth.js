@@ -2,7 +2,7 @@
  * @Author: icezeros 
  * @Date: 2018-09-12 11:51:10 
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-10-09 19:44:05
+ * @Last Modified time: 2018-10-11 10:05:55
  */
 'use strict';
 const OneSignal = require('onesignal-node');
@@ -233,7 +233,7 @@ class EthQueue {
       const pushValue = BigNumber(value !== '0' ? value : tokenValue)
         .dividedBy(10 ** (decimals || 0))
         .toString();
-      if (!pushValue) {
+      if (pushValue === 'NaN') {
         await job.finished();
         await job.remove();
         return;
