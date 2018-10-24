@@ -2,7 +2,7 @@
  * @Author: icezeros 
  * @Date: 2018-09-12 11:51:10 
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-10-11 10:05:55
+ * @Last Modified time: 2018-10-24 11:38:26
  */
 'use strict';
 const OneSignal = require('onesignal-node');
@@ -357,21 +357,12 @@ class EthQueue {
         }
       }
       if (notificationSent) {
-        redis.sadd(
-          'eth:address:debug',
-          `pushValue:${pushValue};sentAddr:${sentAddr};receiveAddr:${receiveAddr};symbol:${symbol};decimals:${decimals};relevant:${relevant}; value:${value};tokenValue:${tokenValue}`
-        );
-
         const result = await oneSignalClient.sendNotification(notificationSent);
         if (result.httpResponse.statusCode !== 200) {
           pushRetryArr.push(notificationSent);
         }
       }
       if (notificationRecieve) {
-        redis.sadd(
-          'eth:address:debug',
-          `pushValue:${pushValue};sentAddr:${sentAddr};receiveAddr:${receiveAddr};symbol:${symbol};decimals:${decimals};relevant:${relevant}; value:${value};tokenValue:${tokenValue}`
-        );
         const result = await oneSignalClient.sendNotification(notificationRecieve);
         if (result.httpResponse.statusCode !== 200) {
           pushRetryArr.push(notificationRecieve);
