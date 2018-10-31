@@ -74,7 +74,15 @@ function loadQueueToApp (app) {
         })
         return true
       })
+      queue.process('cleanFailed', job => {
+        queue.clean(1 * 3600 * 1000, 'failed')
+        job.finished().then(() => {
+          job.remove()
+        })
+        return true
+      })
       queue.add('cleanCompleted', {}, { repeat: { cron: '0 * * * * *' } })
+      queue.add('cleanFailed', {}, { repeat: { cron: '0 * * * * *' } })
 
       return obj
     }
