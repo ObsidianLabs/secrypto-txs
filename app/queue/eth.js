@@ -106,14 +106,14 @@ class EthQueue {
     await redis.set(txHashRedis, JSON.stringify(transaction), 'EX', config.redisTxExpire);
     // TODO:这里之过滤出了ETH转账，合约交易 TO为null
 
-    app.queue.eth.filterTxs({
-      txs: [
-        {
-          ...transaction,
-        },
-      ],
-      type: 'pending',
-    });
+    // app.queue.eth.filterTxs({
+    //   txs: [
+    //     {
+    //       ...transaction,
+    //     },
+    //   ],
+    //   type: 'pending',
+    // });
 
     job.finished().then(() => {
       job.remove();
@@ -180,10 +180,10 @@ class EthQueue {
       job.finished().then(() => {
         job.remove();
       });
-      app.queue.eth.filterTxs({
-        txs: txPushArr,
-        type: 'confirmed',
-      });
+      // app.queue.eth.filterTxs({
+      //   txs: txPushArr,
+      //   type: 'confirmed',
+      // });
 
       return;
     } catch (error) {
@@ -210,10 +210,10 @@ class EthQueue {
     }
 
     txsFilter.forEach(tx => {
-      app.queue.eth.appPush({
-        tx,
-        type,
-      });
+      // app.queue.eth.appPush({
+      //   tx,
+      //   type,
+      // });
     });
 
     job.finished().then(() => {
