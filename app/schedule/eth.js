@@ -70,10 +70,10 @@ class Eth extends Subscription {
   async cacheTransaction(taransactions, block) {
     // TODO:执行cacheTransaction task
     taransactions.forEach(txHash => {
-      // this.app.queue.eth.cacheTransaction({
-      //   txHash,
-      //   block,
-      // });
+      this.app.queue.eth.cacheTransaction({
+        txHash,
+        block,
+      });
     });
   }
 
@@ -99,12 +99,12 @@ class Eth extends Subscription {
     const block = JSON.parse(blockString);
     if (!block.confirmed) {
       // TODO:执行交易确认task
-      // this.app.queue.eth.redisToMongo({
-      //   transactions: block.transactions,
-      //   blockNumber: block.number,
-      //   blockHash: block.hash,
-      //   timestamp: block.timestamp,
-      // });
+      this.app.queue.eth.redisToMongo({
+        transactions: block.transactions,
+        blockNumber: block.number,
+        blockHash: block.hash,
+        timestamp: block.timestamp,
+      });
       block.confirmed = true;
       await redis.set(`eth:block:${hash}`, JSON.stringify(block), 'EX', config.redisBlockExpire);
       await this.confirmBacktrack(null, block.parentHash, iteration + 1);
