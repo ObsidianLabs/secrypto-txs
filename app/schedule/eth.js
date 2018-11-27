@@ -2,7 +2,7 @@
  * @Author: icezeros
  * @Date: 2018-09-11 16:50:45
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-10-08 11:05:58
+ * @Last Modified time: 2018-11-27 10:24:07
  */
 'use strict';
 const Subscription = require('egg').Subscription;
@@ -99,12 +99,12 @@ class Eth extends Subscription {
     const block = JSON.parse(blockString);
     if (!block.confirmed) {
       // TODO:执行交易确认task
-      this.app.queue.eth.redisToMongo({
-        transactions: block.transactions,
-        blockNumber: block.number,
-        blockHash: block.hash,
-        timestamp: block.timestamp,
-      });
+      // this.app.queue.eth.redisToMongo({
+      //   transactions: block.transactions,
+      //   blockNumber: block.number,
+      //   blockHash: block.hash,
+      //   timestamp: block.timestamp,
+      // });
       block.confirmed = true;
       await redis.set(`eth:block:${hash}`, JSON.stringify(block), 'EX', config.redisBlockExpire);
       await this.confirmBacktrack(null, block.parentHash, iteration + 1);
