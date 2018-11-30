@@ -1,8 +1,8 @@
 /*
- * @Author: icezeros 
- * @Date: 2018-09-12 11:51:10 
+ * @Author: icezeros
+ * @Date: 2018-09-12 11:51:10
  * @Last Modified by: icezeros
- * @Last Modified time: 2018-10-24 11:38:26
+ * @Last Modified time: 2018-11-30 16:47:12
  */
 'use strict';
 const OneSignal = require('onesignal-node');
@@ -325,6 +325,7 @@ class EthQueue {
             'zh-Hans': `一笔${pushValue} ${symbol}的入账正在处理中……`,
           },
           include_player_ids: [pushObj.recieve.user.oneSignalId],
+          android_channel_id: ['751896e6-fcb5-4acf-97d9-2d652df16632'],
         });
       }
 
@@ -340,6 +341,7 @@ class EthQueue {
               'zh-Hans': `您的转账${pushValue} ${symbol}已确认完成。`,
             },
             include_player_ids: [pushObj.sent.user.oneSignalId],
+            android_channel_id: ['751896e6-fcb5-4acf-97d9-2d652df16632'],
           });
         }
         if (pushObj.recieve) {
@@ -353,6 +355,7 @@ class EthQueue {
               'zh-Hans': `您的钱包已确认收到${pushValue} ${symbol}。`,
             },
             include_player_ids: [pushObj.recieve.user.oneSignalId],
+            android_channel_id: ['751896e6-fcb5-4acf-97d9-2d652df16632'],
           });
         }
       }
