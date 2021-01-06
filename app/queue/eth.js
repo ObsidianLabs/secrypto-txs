@@ -67,14 +67,6 @@ class EthQueue {
       raw: rawTx
     }
 
-    // const from =
-    // const to = rawTx.to.toLowerCase()
-    // transaction.from = addrFrom
-    // transaction.to = addrTo
-    // transaction.symbol = 'ETH'
-    // transaction.relevant = [addrFrom, addrTo]
-    // transaction.decimals = 18
-    // console.log('=========transaction.input.indexOf()============ ', transaction.input.indexOf('0xa9059cbb'))
     if (rawTx.input && rawTx.input.startsWith('0xa9059cbb')) {
       console.log('erc20')
       let erc20 = await model.EthErc20.findOne({ _id: to }).lean()
@@ -92,6 +84,7 @@ class EthQueue {
             symbol,
             icon: ''
           }
+          console.log(EthErc20Data)
           // ethErc20[addrTo] = EthErc20Data
           erc20 = await model.EthErc20.create(EthErc20Data)
         } catch (error) {
