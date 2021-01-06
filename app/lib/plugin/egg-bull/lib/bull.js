@@ -68,21 +68,21 @@ function loadQueueToApp (app) {
       })
 
       queue.process('cleanCompleted', job => {
-        queue.clean(3/60 * 3600 * 1000, 'completed')
+        queue.clean(3 * 3600 * 1000, 'completed')
         job.finished().then(() => {
           job.remove()
         })
         return true
       })
       queue.process('cleanFailed', job => {
-        queue.clean(1/60 * 3600 * 1000, 'failed')
+        queue.clean(1 * 3600 * 1000, 'failed')
         job.finished().then(() => {
           job.remove()
         })
         return true
       })
-      queue.add('cleanCompleted', {}, { repeat: { cron: '* * * * * *' } })
-      queue.add('cleanFailed', {}, { repeat: { cron: '* * * * * *' } })
+      queue.add('cleanCompleted', {}, { repeat: { cron: '0 * * * * *' } })
+      queue.add('cleanFailed', {}, { repeat: { cron: '0 * * * * *' } })
 
       return obj
     }
