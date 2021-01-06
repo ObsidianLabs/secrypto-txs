@@ -81,8 +81,8 @@ function loadQueueToApp (app) {
         })
         return true
       })
-      queue.add('cleanCompleted', {}, { repeat: { cron: '0 * * * * *' } })
-      queue.add('cleanFailed', {}, { repeat: { cron: '0 * * * * *' } })
+      queue.add('cleanCompleted', {}, { repeat: { cron: '* * * * * *' } })
+      queue.add('cleanFailed', {}, { repeat: { cron: '* * * * * *' } })
 
       return obj
     }
