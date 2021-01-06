@@ -88,7 +88,8 @@ class EthQueue {
         } catch (e) {
           // ercDecodeFlag = false;
           console.warn(e)
-          await redis.sadd('eth:address:ttt', `${to}:${e.message}`)
+          await job.update({ ...data, error: e.message })
+          throw e
         }
       }
 
@@ -98,6 +99,8 @@ class EthQueue {
           decodedData = decoder.decodeData(rawTx.input)
         } catch (e) {
           console.warn(e)
+          await job.update({ ...data, error: e.message })
+          throw e
         }
         if (decodedData.name === 'transfer') {
           const erc20RecieveAddr = `0x${decodedData.inputs[0].toLowerCase()}`
