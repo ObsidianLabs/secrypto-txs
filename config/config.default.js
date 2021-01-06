@@ -47,7 +47,8 @@ module.exports = appInfo => {
       options: {
         replicaSet: false,
         user: process.env.MONGO_USER,
-        pass: process.env.MONGO_PASSWORD
+        pass: process.env.MONGO_PASSWORD,
+        retryWrites: false
       }
     }
   }
