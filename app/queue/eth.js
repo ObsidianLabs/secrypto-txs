@@ -98,6 +98,7 @@ class EthQueue {
         try {
           decodedData = decoder.decodeData(rawTx.input)
         } catch (e) {
+          console.warn('decodedData error')
           console.warn(e)
           await job.update({ ...data, raw: rawTx, error: e.message })
           throw e
