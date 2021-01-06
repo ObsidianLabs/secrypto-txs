@@ -35,7 +35,9 @@ class EthQueue {
       return
     }
 
-    const rawTx = await web3.eth.getTransaction(txHash)
+    const rawTx = data.raw || await web3.eth.getTransaction(txHash)
+    await job.update({ ...data, raw: rawTx })
+
     if (!rawTx) {
       // await job.retry()
       await job.update({
@@ -75,23 +77,28 @@ class EthQueue {
           const symbol = await contract.methods.symbol().call()
           const name = await contract.methods.name().call()
           const decimals = await contract.methods.decimals().call()
-          const EthErc20Data = {
+          const erc20Data = {
             _id: to,
             name,
             decimals,
             symbol,
             icon: ''
           }
-          erc20 = await model.EthErc20.create(EthErc20Data)
-        } catch (error) {
+          erc20 = await model.EthErc20.create(erc20Data)
+        } catch (e) {
           // ercDecodeFlag = false;
-          console.warn(error)
-          await redis.sadd('eth:address:ttt', `${to}:${error.message}`)
+          console.warn(e)
+          await redis.sadd('eth:address:ttt', `${to}:${e.message}`)
         }
       }
 
       if (erc20) {
-        const decodedData = decoder.decodeData(rawTx.input)
+        let decodedData
+        try {
+          decodedData = decoder.decodeData(rawTx.input)
+        } catch (e) {
+          console.warn(e)
+        }
         if (decodedData.name === 'transfer') {
           const erc20RecieveAddr = `0x${decodedData.inputs[0].toLowerCase()}`
           const erc20RecValue = decodedData.inputs[1]
