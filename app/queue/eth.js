@@ -72,24 +72,33 @@ class EthQueue {
     if (rawTx.input && rawTx.input.startsWith('0xa9059cbb')) {
       let erc20 = await model.EthErc20.findById(to)
       if (!erc20) {
+        let name, symbol, decimals
         try {
           const contract = new web3.eth.Contract(erc20AbiJson, to)
-          const symbol = await contract.methods.symbol().call()
-          const name = await contract.methods.name().call()
-          const decimals = await contract.methods.decimals().call()
-          const erc20Data = {
-            _id: to,
-            name,
-            decimals,
-            symbol,
-            icon: ''
-          }
-          erc20 = await model.EthErc20.create(erc20Data)
+          name = await contract.methods.name().call()
+          symbol = await contract.methods.symbol().call()
+          decimals = await contract.methods.decimals().call()
         } catch (e) {
-          // ercDecodeFlag = false;
           console.warn(e)
-          await job.update({ ...data, raw: rawTx, error: e.message })
-          throw e
+        }
+
+        if (name || symbol) {
+          try {
+            erc20 = await model.EthErc20.findById(to)
+            if (!erc20) {
+              erc20 = await model.EthErc20.create({
+                _id: to,
+                name,
+                symbol,
+                decimals,
+                icon: ''
+              })
+            }
+          } catch (e) {
+            console.warn(e)
+            await job.update({ ...data, raw: rawTx, error: e.message })
+            throw e
+          }
         }
       }
 
