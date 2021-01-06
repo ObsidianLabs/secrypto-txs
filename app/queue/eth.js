@@ -3,12 +3,11 @@ const moment = require('moment')
 // const BigNumber = require('bignumber.js')
 
 const InputDataDecoder = require('ethereum-input-data-decoder')
-const OneSignal = require('onesignal-node')
 
 const erc20AbiJson = require('../data/erc20Abi.json')
-
 const decoder = new InputDataDecoder(erc20AbiJson)
 
+// const OneSignal = require('onesignal-node')
 // const Notification = OneSignal.Notification
 // const oneSignalClient = new OneSignal.Client({
 //   app: {
@@ -23,24 +22,19 @@ class EthQueue {
     const { txHash } = data
     const { redis, config, web3, model } = app
     // const { fromWei, hexToNumberString, BN, isAddress, isBigNumber, isBN } = web3.utils;
-    const redisKey = `eth:tx:${txHash}`
     if (!txHash) {
       job.finished().then(() => {
         job.remove()
       })
       return
     }
-    // const txExists = await redis.exists(redisKey)
-    // if (txExists) {
-    //   job.finished().then(() => {
-    //     job.remove()
-    //   })
-    //   return
-    // }
-    job.finished().then(() => {
-      job.remove()
-    })
-    return
+    const redisKey = `eth:tx:${txHash}`
+    if (await redis.exists(redisKey)) {
+      job.finished().then(() => {
+        job.remove()
+      })
+      return
+    }
 
     const rawTx = await web3.eth.getTransaction(txHash)
     if (!rawTx) {
@@ -53,6 +47,7 @@ class EthQueue {
       await app.sleep(data.iteration || 1000)
       throw new Error(`web3.eth.getTransaction(txHash) error ${txHash} ${new Date()}`)
     }
+
     // 过滤出 to=null   to=null为新创建的合约
     if (!rawTx.from || !rawTx.to) {
       job.finished().then(() => {
@@ -60,81 +55,76 @@ class EthQueue {
       })
       return
     }
-    try {
-      const from = rawTx.from.toLowerCase()
-      const to = rawTx.to.toLowerCase()
-      const tx = {
-        from,
-        to,
-        value: rawTx.value,
-        symbol: 'ETH',
-        decimals: 18,
-        relevant: [from, to],
-        raw: rawTx
-      }
 
-      console.log(tx)
-      // const from =
-      // const to = rawTx.to.toLowerCase()
-      // transaction.from = addrFrom
-      // transaction.to = addrTo
-      // transaction.symbol = 'ETH'
-      // transaction.relevant = [addrFrom, addrTo]
-      // transaction.decimals = 18
-      // console.log('=========transaction.input.indexOf()============ ', transaction.input.indexOf('0xa9059cbb'))
-      if (rawTx.input && rawTx.input.startsWith('0xa9059cbb')) {
-        // let erc20 = await model.EthErc20.findOne({ _id: to }).lean()
-        // // let ercDecodeFlag = true
-        // if (!erc20) {
-        //   try {
-        //     const contract = new web3.eth.Contract(erc20AbiJson, to)
-        //     const symbol = await contract.methods.symbol().call()
-        //     const name = await contract.methods.name().call()
-        //     const decimals = await contract.methods.decimals().call()
-        //     const EthErc20Data = {
-        //       _id: to,
-        //       name,
-        //       decimals,
-        //       symbol,
-        //       icon: ''
-        //     }
-        //     erc20 = EthErc20Data
-        //     // ethErc20[addrTo] = EthErc20Data
-        //     erc20 = await model.EthErc20.create(EthErc20Data)
-        //   } catch (error) {
-        //     // ercDecodeFlag = false;
-        //     await redis.sadd('eth:address:ttt', `${to}:${error.message}`)
-        //   }
-        // }
-
-        // if (erc20) {
-        //   const decodedData = decoder.decodeData(rawTx.input)
-        //   if (decodedData.name === 'transfer') {
-        //     const erc20RecieveAddr = `0x${decodedData.inputs[0].toLowerCase()}`
-        //     const erc20RecValue = BigNumber(decodedData.inputs[1]).toFixed(0)
-        //     tx.symbol = erc20.symbol
-        //     tx.decimals = erc20.decimals
-        //     tx.relevant.push(erc20RecieveAddr)
-        //     tx.tokenValue = erc20RecValue
-        //   }
-        // }
-      }
-
-      await redis.set(redisKey, JSON.stringify(tx), 'EX', config.redisTxExpire)
-      // TODO:这里之过滤出了ETH转账，合约交易 TO为null
-
-      // app.queue.eth.filterTxs({
-      //   txs: [tx],
-      //   type: 'pending'
-      // })
-
-      job.finished().then(() => {
-        job.remove()
-      })
-    } catch (e) {
-      console.warn(e)
-      throw e
+    const from = rawTx.from.toLowerCase()
+    const to = rawTx.to.toLowerCase()
+    const tx = {
+      from,
+      to,
+      value: rawTx.value,
+      symbol: 'ETH',
+      decimals: 18,
+      relevant: [from, to],
+      raw: rawTx
     }
+
+    // const from =
+    // const to = rawTx.to.toLowerCase()
+    // transaction.from = addrFrom
+    // transaction.to = addrTo
+    // transaction.symbol = 'ETH'
+    // transaction.relevant = [addrFrom, addrTo]
+    // transaction.decimals = 18
+    // console.log('=========transaction.input.indexOf()============ ', transaction.input.indexOf('0xa9059cbb'))
+    if (rawTx.input && rawTx.input.startsWith('0xa9059cbb')) {
+      // let erc20 = await model.EthErc20.findOne({ _id: to }).lean()
+      // // let ercDecodeFlag = true
+      // if (!erc20) {
+      //   try {
+      //     const contract = new web3.eth.Contract(erc20AbiJson, to)
+      //     const symbol = await contract.methods.symbol().call()
+      //     const name = await contract.methods.name().call()
+      //     const decimals = await contract.methods.decimals().call()
+      //     const EthErc20Data = {
+      //       _id: to,
+      //       name,
+      //       decimals,
+      //       symbol,
+      //       icon: ''
+      //     }
+      //     erc20 = EthErc20Data
+      //     // ethErc20[addrTo] = EthErc20Data
+      //     erc20 = await model.EthErc20.create(EthErc20Data)
+      //   } catch (error) {
+      //     // ercDecodeFlag = false;
+      //     await redis.sadd('eth:address:ttt', `${to}:${error.message}`)
+      //   }
+      // }
+
+      // if (erc20) {
+      //   const decodedData = decoder.decodeData(rawTx.input)
+      //   if (decodedData.name === 'transfer') {
+      //     const erc20RecieveAddr = `0x${decodedData.inputs[0].toLowerCase()}`
+      //     const erc20RecValue = BigNumber(decodedData.inputs[1]).toFixed(0)
+      //     tx.symbol = erc20.symbol
+      //     tx.decimals = erc20.decimals
+      //     tx.relevant.push(erc20RecieveAddr)
+      //     tx.tokenValue = erc20RecValue
+      //   }
+      // }
+    }
+
+    await redis.set(redisKey, JSON.stringify(tx), 'EX', config.redisTxExpire)
+    // TODO:这里之过滤出了ETH转账，合约交易 TO为null
+
+    // app.queue.eth.filterTxs({
+    //   txs: [tx],
+    //   type: 'pending'
+    // })
+
+    job.finished().then(() => {
+      job.remove()
+    })
   }
 
   async redisToMongo (data, app, job) {

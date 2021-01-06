@@ -18,7 +18,6 @@ class Eth extends Subscription {
   }
 
   async backtrack (blockNumber, hash, iteration = 0) {
-    console.log('backtrack', blockNumber)
     const { redis, config } = this.app
     if (iteration >= config.backtrackIteration) {
       return
@@ -59,11 +58,10 @@ class Eth extends Subscription {
   }
 
   async cacheTransaction (taransactions, block) {
-    console.log('hash', block.hash)
     // TODO:执行cacheTransaction task
-    // taransactions.forEach(txHash => {
-    //   this.app.queue.eth.cacheTransaction({ txHash, block })
-    // })
+    taransactions.forEach(txHash => {
+      this.app.queue.eth.cacheTransaction({ txHash, block })
+    })
   }
 
   async confirmBacktrack (blockNumber, hash, iteration = 0) {
