@@ -76,29 +76,30 @@ class EthQueue {
     // transaction.decimals = 18
     // console.log('=========transaction.input.indexOf()============ ', transaction.input.indexOf('0xa9059cbb'))
     if (rawTx.input && rawTx.input.startsWith('0xa9059cbb')) {
-      // let erc20 = await model.EthErc20.findOne({ _id: to }).lean()
+      console.log('erc20')
+      let erc20 = await model.EthErc20.findOne({ _id: to }).lean()
       // // let ercDecodeFlag = true
-      // if (!erc20) {
-      //   try {
-      //     const contract = new web3.eth.Contract(erc20AbiJson, to)
-      //     const symbol = await contract.methods.symbol().call()
-      //     const name = await contract.methods.name().call()
-      //     const decimals = await contract.methods.decimals().call()
-      //     const EthErc20Data = {
-      //       _id: to,
-      //       name,
-      //       decimals,
-      //       symbol,
-      //       icon: ''
-      //     }
-      //     erc20 = EthErc20Data
-      //     // ethErc20[addrTo] = EthErc20Data
-      //     erc20 = await model.EthErc20.create(EthErc20Data)
-      //   } catch (error) {
-      //     // ercDecodeFlag = false;
-      //     await redis.sadd('eth:address:ttt', `${to}:${error.message}`)
-      //   }
-      // }
+      if (!erc20) {
+        try {
+          const contract = new web3.eth.Contract(erc20AbiJson, to)
+          const symbol = await contract.methods.symbol().call()
+          const name = await contract.methods.name().call()
+          const decimals = await contract.methods.decimals().call()
+          const EthErc20Data = {
+            _id: to,
+            name,
+            decimals,
+            symbol,
+            icon: ''
+          }
+          // ethErc20[addrTo] = EthErc20Data
+          erc20 = await model.EthErc20.create(EthErc20Data)
+        } catch (error) {
+          // ercDecodeFlag = false;
+          console.warn(error)
+          await redis.sadd('eth:address:ttt', `${to}:${error.message}`)
+        }
+      }
 
       // if (erc20) {
       //   const decodedData = decoder.decodeData(rawTx.input)

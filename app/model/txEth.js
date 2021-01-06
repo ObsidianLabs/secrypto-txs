@@ -1,5 +1,5 @@
 module.exports = app => {
-  const mongoose = app.mongoose;
+  const mongoose = app.mongoose
 
   const TxEthSchema = new mongoose.Schema(
     {
@@ -20,20 +20,20 @@ module.exports = app => {
       s: String,
       transactionIndex: Number,
       v: String,
-      value: String,
+      value: String
     },
     {
       typeKey: '$type',
       timestamps: {
         createdAt: 'created',
-        updatedAt: 'updated',
-      },
+        updatedAt: 'updated'
+      }
     }
-  );
-  TxEthSchema.index({ relevant: 1, timestamp: -1 });
-  const model = mongoose.model('tx_eth_', TxEthSchema);
+  )
+  TxEthSchema.index({ relevant: 1, timestamp: -1 })
+  const model = mongoose.model('tx_eth_', TxEthSchema)
   model.at = ts => {
-    return mongoose.model('tx_eth_' + ts, TxEthSchema);
-  };
-  return model;
-};
+    return mongoose.model('tx_eth_' + ts, TxEthSchema)
+  }
+  return model
+}

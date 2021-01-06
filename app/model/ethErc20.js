@@ -1,5 +1,5 @@
 module.exports = app => {
-  const mongoose = app.mongoose;
+  const mongoose = app.mongoose
 
   const EthErc20Schema = new mongoose.Schema(
     {
@@ -8,15 +8,15 @@ module.exports = app => {
       name: String,
       symbol: String,
       decimals: Number,
-      icon: String,
+      icon: String
     },
     {
       typeKey: '$type',
       timestamps: {
         createdAt: 'created',
-        updatedAt: 'updated',
-      },
+        updatedAt: 'updated'
+      }
     }
-  );
-  return mongoose.model('eth_erc20', EthErc20Schema);
-};
+  )
+  return mongoose.model('eth_erc20', EthErc20Schema)
+}
