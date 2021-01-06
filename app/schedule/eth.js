@@ -22,7 +22,7 @@ class Eth extends Subscription {
     if (iteration >= config.backtrackIteration) {
       return
     }
-    const block = await this.getBlock(blockNumber || hash)
+    const { transactions, ...block } = await this.getBlock(blockNumber || hash)
     if (!block) {
       return
     }
