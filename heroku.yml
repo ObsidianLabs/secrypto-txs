@@ -1,7 +1,0 @@
-build:
-  languages:
-    - node
-  pre:
-    - yarn
-run:
-  web: yarn run dev

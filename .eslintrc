@@ -1,6 +1,5 @@
 {
-  "extends": ["standard"],
-  "rules": {
-    "valid-jsdoc": 0
-  }
+  "parser": "@babel/eslint-parser",
+  "plugins": ["@babel"],
+  "extends": ["standard"]
 }
