@@ -18,7 +18,6 @@ const decoder = new InputDataDecoder(erc20AbiJson)
 
 class EthQueue {
   async cacheTransaction (data, app, job) {
-    console.log('cacheTransaction')
     const { txHash } = data
     const { redis, config, web3, model } = app
     // const { fromWei, hexToNumberString, BN, isAddress, isBigNumber, isBN } = web3.utils;
