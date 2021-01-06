@@ -35,7 +35,15 @@ class EthQueue {
       return
     }
 
-    const rawTx = data.raw || await web3.eth.getTransaction(txHash)
+    let rawTx
+    if (data.raw) {
+      rawTx = data.raw
+    } else {
+      if (data.wait) {
+        await app.sleep(data.wait)
+      }
+      rawTx = await web3.eth.getTransaction(txHash)
+    }
     await job.update({ ...data, raw: rawTx })
 
     if (!rawTx) {
@@ -43,9 +51,8 @@ class EthQueue {
       await job.update({
         ...data,
         time: new Date(),
-        iteration: data.iteration ? (data.iteration += 3000) : 1000
+        wait: data.wait ? (data.wait + 10000) : 10000
       })
-      await app.sleep(data.iteration || 1000)
       throw new Error(`web3.eth.getTransaction(txHash) error ${txHash} ${new Date()}`)
     }
 
@@ -141,6 +148,32 @@ class EthQueue {
     })
   }
 
+  async filterTxs (data, app, job) {
+    const { txs, type } = data
+    const { redis } = app
+    const txsFilter = []
+    for (let i = 0; i < txs.length; i++) {
+      const tx = txs[i]
+      const task = tx.relevant.map(addr => {
+        return redis.sismember('eth:address:set', (addr && addr.toLowerCase()) || null)
+      })
+      const addrExistses = await Promise.all(task)
+
+      if (addrExistses.indexOf(1) >= 0) {
+        tx.addrExistses = addrExistses
+        txsFilter.push(tx)
+      }
+    }
+
+    txsFilter.forEach(tx => {
+      // app.queue.eth.appPush({ tx, type })
+    })
+
+    job.finished().then(() => {
+      job.remove()
+    })
+  }
+
   async redisToMongo (data, app, job) {
     const { transactions, blockNumber, blockHash, timestamp } = data
     const { redis, config } = app
@@ -207,32 +240,6 @@ class EthQueue {
       console.log(error)
       throw error
     }
-  }
-
-  async filterTxs (data, app, job) {
-    const { txs, type } = data
-    const { redis } = app
-    const txsFilter = []
-    for (let i = 0; i < txs.length; i++) {
-      const tx = txs[i]
-      const task = tx.relevant.map(addr => {
-        return redis.sismember('eth:address:set', (addr && addr.toLowerCase()) || null)
-      })
-      const addrExistses = await Promise.all(task)
-
-      if (addrExistses.indexOf(1) >= 0) {
-        tx.addrExistses = addrExistses
-        txsFilter.push(tx)
-      }
-    }
-
-    txsFilter.forEach(tx => {
-      // app.queue.eth.appPush({ tx, type })
-    })
-
-    job.finished().then(() => {
-      job.remove()
-    })
   }
 
   // async appPush (data, app, job) {
