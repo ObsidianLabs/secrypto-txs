@@ -79,6 +79,7 @@ class EthQueue {
           symbol = await contract.methods.symbol().call()
           decimals = await contract.methods.decimals().call()
         } catch (e) {
+          console.warn(txHash)
           console.warn(e)
         }
 
@@ -95,6 +96,7 @@ class EthQueue {
               })
             }
           } catch (e) {
+            console.warn(txHash)
             console.warn(e)
             await job.update({ ...data, raw: rawTx, error: e.message })
             throw e
@@ -108,6 +110,7 @@ class EthQueue {
           decodedData = decoder.decodeData(rawTx.input)
         } catch (e) {
           console.warn('decodedData error')
+          console.warn(txHash)
           console.warn(e)
           await job.update({ ...data, raw: rawTx, error: e.message })
           throw e
@@ -119,7 +122,8 @@ class EthQueue {
           tx.decimals = erc20.decimals
           tx.relevant.push(erc20RecieveAddr)
           tx.tokenValue = erc20RecValue
-          console.log(tx)
+          console.warn(txHash)
+          console.warn(tx)
         }
       }
     }
