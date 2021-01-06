@@ -70,7 +70,7 @@ class EthQueue {
     }
 
     if (rawTx.input && rawTx.input.startsWith('0xa9059cbb')) {
-      let erc20 = await model.EthErc20.findOne({ _id: to }).lean()
+      let erc20 = await model.EthErc20.findById(to)
       if (!erc20) {
         try {
           const contract = new web3.eth.Contract(erc20AbiJson, to)
