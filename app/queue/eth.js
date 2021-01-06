@@ -88,7 +88,7 @@ class EthQueue {
         } catch (e) {
           // ercDecodeFlag = false;
           console.warn(e)
-          await job.update({ ...data, error: e.message })
+          await job.update({ ...data, raw: rawTx, error: e.message })
           throw e
         }
       }
@@ -99,7 +99,7 @@ class EthQueue {
           decodedData = decoder.decodeData(rawTx.input)
         } catch (e) {
           console.warn(e)
-          await job.update({ ...data, error: e.message })
+          await job.update({ ...data, raw: rawTx, error: e.message })
           throw e
         }
         if (decodedData.name === 'transfer') {
