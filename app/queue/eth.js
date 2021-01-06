@@ -68,9 +68,7 @@ class EthQueue {
     }
 
     if (rawTx.input && rawTx.input.startsWith('0xa9059cbb')) {
-      console.log('erc20')
       let erc20 = await model.EthErc20.findOne({ _id: to }).lean()
-      // // let ercDecodeFlag = true
       if (!erc20) {
         try {
           const contract = new web3.eth.Contract(erc20AbiJson, to)
@@ -84,8 +82,6 @@ class EthQueue {
             symbol,
             icon: ''
           }
-          console.log(EthErc20Data)
-          // ethErc20[addrTo] = EthErc20Data
           erc20 = await model.EthErc20.create(EthErc20Data)
         } catch (error) {
           // ercDecodeFlag = false;
@@ -94,17 +90,18 @@ class EthQueue {
         }
       }
 
-      // if (erc20) {
-      //   const decodedData = decoder.decodeData(rawTx.input)
-      //   if (decodedData.name === 'transfer') {
-      //     const erc20RecieveAddr = `0x${decodedData.inputs[0].toLowerCase()}`
-      //     const erc20RecValue = BigNumber(decodedData.inputs[1]).toFixed(0)
-      //     tx.symbol = erc20.symbol
-      //     tx.decimals = erc20.decimals
-      //     tx.relevant.push(erc20RecieveAddr)
-      //     tx.tokenValue = erc20RecValue
-      //   }
-      // }
+      if (erc20) {
+        const decodedData = decoder.decodeData(rawTx.input)
+        if (decodedData.name === 'transfer') {
+          const erc20RecieveAddr = `0x${decodedData.inputs[0].toLowerCase()}`
+          const erc20RecValue = decodedData.inputs[1]
+          tx.symbol = erc20.symbol
+          tx.decimals = erc20.decimals
+          tx.relevant.push(erc20RecieveAddr)
+          tx.tokenValue = erc20RecValue
+          console.log(tx)
+        }
+      }
     }
 
     await redis.set(redisKey, JSON.stringify(tx), 'EX', config.redisTxExpire)
