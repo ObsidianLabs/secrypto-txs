@@ -86,7 +86,7 @@ class Eth extends Subscription {
     }
 
     if (!block.confirmed) {
-      console.log(`Confirming block ${block.number} ${block.blockNumber}`)
+      console.log(`Confirming block ${block.number} ${block.hash}`)
       block.confirmed = true
       await redis.set(`eth:block:${block.hash}`, JSON.stringify(block), 'EX', config.redisBlockExpire)
 
