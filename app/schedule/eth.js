@@ -90,7 +90,6 @@ class Eth extends Subscription {
 
       if (!Array.isArray(block.transactions)) {
         console.warn(`Block ${hash || blockNumber} has empty transactions.`)
-        console.warn(typeof block.transactions)
       } else {
         const hashs = block.transactions.map(txHash => `eth:tx:${txHash}`)
         const cachedTxs = await this.app.redis.mget(hashs)
