@@ -184,7 +184,7 @@ class EthQueue {
     // }
     // const startWeek = moment().startOf('w').unix()
     data._id = data.raw.hash
-    const existed = app.model.EthTx.findById(data._id)
+    const existed = await app.model.EthTx.findById(data._id)
     if (existed) {
       console.warn(`dup tx: ${data._id}`)
       // console.warn(`dup tx: ${data._id}\n${data.raw.blockNumber} ${data.raw.blockHash}\n${existed.raw.blockNumber} ${existed.raw.blockHash}\n`)
