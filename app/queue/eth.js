@@ -148,7 +148,7 @@ class EthQueue {
 
   async filterTxs (data, app, job) {
     const hashs = data.txs.map(txHash => `eth:tx:${txHash}`)
-    const cachedTxs = await this.app.redis.mget(hashs)
+    const cachedTxs = await app.redis.mget(hashs)
 
     await Promise.all(cachedTxs.forEach(async txJson => {
       if (!txJson) {
