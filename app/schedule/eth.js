@@ -87,7 +87,7 @@ class Eth extends Subscription {
     }
 
     if (!block.confirmed) {
-      if (Array.isArray(block.transactions)) {
+      if (!Array.isArray(block.transactions)) {
         console.warn(`Block ${hash || blockNumber} has empty transactions.`)
         console.warn(typeof block.transactions)
       } else {
