@@ -186,8 +186,9 @@ class EthQueue {
     data._id = data.raw.hash
     const existed = await app.model.EthTx.findById(data._id)
     if (existed) {
-      console.warn(`dup tx: ${data._id}`)
-      // console.warn(`dup tx: ${data._id}\n${data.raw.blockNumber} ${data.raw.blockHash}\n${existed.raw.blockNumber} ${existed.raw.blockHash}\n`)
+      const { blockNumber, blockHash } = data.raw || {}
+      const { blockNumber: rawNumber, blockHash: rawHash } = existed.raw || {}
+      console.warn(`dup tx: ${data._id}\n${blockNumber} ${blockHash}\n${rawNumber} ${rawHash}\n`)
     } else {
       await app.model.EthTx.create(data)
     }
