@@ -23,9 +23,9 @@ module.exports = app => {
     }
   )
   // EthTxSchema.index({ relevant: 1, timestamp: -1 })
-  const model = mongoose.model('eth_tx', EthTxSchema)
+  const model = mongoose.model('eth_txs', EthTxSchema)
   model.at = ts => {
-    return mongoose.model('eth_tx_' + ts, EthTxSchema)
+    return mongoose.model('eth_txs_' + ts, EthTxSchema)
   }
   return model
 }

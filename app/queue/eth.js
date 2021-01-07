@@ -121,6 +121,7 @@ class EthQueue {
           await job.update({ ...data, raw: rawTx, error: e.message })
           throw e
         }
+        console.warn(decodedData)
         if (decodedData.name === 'transfer') {
           const erc20Receiver = `0x${decodedData.inputs[0].toLowerCase()}`
           const tokenValue = decodedData.inputs[1]
@@ -185,7 +186,6 @@ class EthQueue {
 
     const hashs = transactions.map(txHash => `eth:tx:${txHash}`)
     const cachedTxs = await redis.mget(hashs)
-    const txArr = []
     // const txPushArr = []
     // const txErr = [];
     const txs = cachedTxs.map((txJson, k) => {
