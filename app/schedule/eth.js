@@ -65,7 +65,6 @@ class Eth extends Subscription {
   }
 
   async confirmBacktrack (blockNumber, hash, iteration = 0) {
-    console.log(`Confirming block ${hash || blockNumber}`)
     const { redis, config } = this.app
     if (iteration >= config.confirmBacktrackIteration) {
       return
@@ -87,6 +86,7 @@ class Eth extends Subscription {
     }
 
     if (!block.confirmed) {
+      console.log(`Confirming block ${block.number} ${block.blockNumber}`)
       block.confirmed = true
       await redis.set(`eth:block:${block.hash}`, JSON.stringify(block), 'EX', config.redisBlockExpire)
 
