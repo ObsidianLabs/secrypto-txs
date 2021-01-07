@@ -173,30 +173,6 @@ class EthQueue {
   }
 
   async redisToMongo (data, app, job) {
-    const { transactions } = data
-    const { redis } = app
-
-    if (transactions.length === 0) {
-      job.finished().then(() => {
-        job.remove()
-      })
-      return
-    }
-
-    const hashs = transactions.map(txHash => `eth:tx:${txHash}`)
-    const cachedTxs = await redis.mget(hashs)
-    // const txPushArr = []
-    // const txErr = [];
-    const txs = cachedTxs.map((txJson, k) => {
-      if (!txJson) {
-        return
-      }
-
-      const tx = JSON.parse(txJson)
-      tx._id = tx.raw.hash
-      return tx
-    }).filter(Boolean)
-
     // if (txErr.length !== 0) {
     //   await app.model.Test.create({
     //     blockNumber,
@@ -207,9 +183,8 @@ class EthQueue {
     //   });
     // }
     // const startWeek = moment().startOf('w').unix()
-
     try {
-      await app.model.EthTx.create(txs)
+      await app.model.EthTx.create(data)
       job.finished().then(() => {
         job.remove()
       })
@@ -217,8 +192,6 @@ class EthQueue {
       //   txs: txPushArr,
       //   type: 'confirmed'
       // })
-
-      return
     } catch (e) {
       console.warn(e)
       throw e

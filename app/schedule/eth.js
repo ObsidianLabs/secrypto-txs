@@ -91,7 +91,18 @@ class Eth extends Subscription {
         console.warn(`Block ${hash || blockNumber} has empty transactions.`)
         console.warn(typeof block.transactions)
       } else {
-        this.app.queue.eth.redisToMongo({ transactions: block.transactions })
+        const hashs = block.transactions.map(txHash => `eth:tx:${txHash}`)
+        const cachedTxs = await this.app.redis.mget(hashs)
+        cachedTxs.forEach(txJson => {
+          if (!txJson) {
+            return
+          }
+
+          const tx = JSON.parse(txJson)
+          tx._id = tx.raw.hash
+
+          this.app.queue.eth.redisToMongo(tx)
+        })
       }
       block.confirmed = true
       await redis.set(`eth:block:${block.hash}`, JSON.stringify(block), 'EX', config.redisBlockExpire)
