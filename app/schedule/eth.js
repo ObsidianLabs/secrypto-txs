@@ -89,7 +89,7 @@ class Eth extends Subscription {
     if (!block.confirmed) {
       if (Array.isArray(block.transactions)) {
         console.warn(`Block ${hash || blockNumber} has empty transactions.`)
-        console.warn(block)
+        console.warn(typeof block.transactions)
       } else {
         this.app.queue.eth.redisToMongo({ transactions: block.transactions })
       }
