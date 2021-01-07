@@ -86,13 +86,7 @@ class Eth extends Subscription {
     }
 
     if (!block.confirmed) {
-      // TODO:执行交易确认task
-      // this.app.queue.eth.redisToMongo({
-      //   transactions: block.transactions,
-      //   blockNumber: block.number,
-      //   blockHash: block.hash,
-      //   timestamp: block.timestamp,
-      // });
+      this.app.queue.eth.redisToMongo({ transactions: block.transactions })
       block.confirmed = true
       await redis.set(`eth:block:${hash}`, JSON.stringify(block), 'EX', config.redisBlockExpire)
       await this.confirmBacktrack(null, block.parentHash, iteration + 1)

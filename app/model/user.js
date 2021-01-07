@@ -1,5 +1,5 @@
 module.exports = app => {
-  const mongoose = app.mongoose;
+  const mongoose = app.mongoose
 
   const UserSchema = new mongoose.Schema(
     {
@@ -15,16 +15,16 @@ module.exports = app => {
       ip: String,
       country: String,
       lastSeen: Date,
-      sessions: { $type: Number, default: 0 },
+      sessions: { $type: Number, default: 0 }
     },
     {
       typeKey: '$type',
       timestamps: {
         createdAt: 'created',
-        updatedAt: 'updated',
-      },
+        updatedAt: 'updated'
+      }
     }
-  );
+  )
 
-  return mongoose.model('user', UserSchema);
-};
+  return mongoose.model('user', UserSchema)
+}

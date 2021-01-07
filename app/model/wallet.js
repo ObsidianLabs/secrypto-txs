@@ -1,5 +1,5 @@
 module.exports = app => {
-  const mongoose = app.mongoose;
+  const mongoose = app.mongoose
 
   const WalletSchema = new mongoose.Schema(
     {
@@ -12,16 +12,16 @@ module.exports = app => {
       notScrp: { $type: Boolean, default: false },
       backup: { $type: Boolean, default: false },
       tokens: { $type: Array, default: [] },
-      deleted: { $type: Boolean, default: false },
+      deleted: { $type: Boolean, default: false }
     },
     {
       typeKey: '$type',
       timestamps: {
         createdAt: 'created',
-        updatedAt: 'updated',
-      },
+        updatedAt: 'updated'
+      }
     }
-  );
+  )
 
-  return mongoose.model('wallet', WalletSchema);
-};
+  return mongoose.model('wallet', WalletSchema)
+}

@@ -1,5 +1,5 @@
 // const lodash = require('lodash')
-const moment = require('moment')
+// const moment = require('moment')
 // const BigNumber = require('bignumber.js')
 
 const InputDataDecoder = require('ethereum-input-data-decoder')
@@ -116,21 +116,19 @@ class EthQueue {
         try {
           decodedData = decoder.decodeData(rawTx.input)
         } catch (e) {
-          console.warn('decodedData error')
-          console.warn(txHash)
+          console.warn(`Decode data error: ${txHash}`)
           console.warn(e)
           await job.update({ ...data, raw: rawTx, error: e.message })
           throw e
         }
         if (decodedData.name === 'transfer') {
-          const erc20RecieveAddr = `0x${decodedData.inputs[0].toLowerCase()}`
-          const erc20RecValue = decodedData.inputs[1]
+          const erc20Receiver = `0x${decodedData.inputs[0].toLowerCase()}`
+          const tokenValue = decodedData.inputs[1]
+          tx.token = to
           tx.symbol = erc20.symbol
           tx.decimals = erc20.decimals
-          tx.relevant.push(erc20RecieveAddr)
-          tx.tokenValue = erc20RecValue
-          console.warn(txHash)
-          console.warn(tx)
+          tx.relevant = [from, erc20Receiver]
+          tx.tokenValue = tokenValue
         }
       }
     }
@@ -175,45 +173,39 @@ class EthQueue {
   }
 
   async redisToMongo (data, app, job) {
-    const { transactions, blockNumber, blockHash, timestamp } = data
-    const { redis, config } = app
+    const { transactions } = data
+    const { redis } = app
+
     if (transactions.length === 0) {
       job.finished().then(() => {
         job.remove()
       })
       return
     }
-    const txHashs = transactions.map(txHash => `eth:tx:${txHash}`)
-    const txs = await redis.mget(txHashs)
+
+    const hashs = transactions.map(txHash => `eth:tx:${txHash}`)
+    const cachedTxs = await redis.mget(hashs)
     const txArr = []
-    const txPushArr = []
+    // const txPushArr = []
     // const txErr = [];
-    txs.forEach((tx, k) => {
-      if (tx) {
-        const tmpTx = JSON.parse(tx)
-
-        // TODO:这里之过滤出了ETH转账，合约交易 TO为null
-        if (tmpTx.from && tmpTx.to) {
-          txPushArr.push(tmpTx)
-        }
-        tmpTx._id = tmpTx.hash
-        tmpTx.blockNumber = blockNumber
-        tmpTx.blockHash = blockHash
-        tmpTx.timestamp = new Date(timestamp * 1000)
-        delete tmpTx.txHash
-
-        txArr.push(tmpTx)
-
-        // return tmpTx;
-      } else {
-        // return null;
+    const txs = cachedTxs.map((txJson, k) => {
+      if (!txJson) {
         // txErr.push({
         //   tx,
         //   k,
         //   txHash: txHashs[k],
         // });
+        return
       }
-    })
+
+      const tx = JSON.parse(txJson)
+      // TODO:这里之过滤出了ETH转账，合约交易 TO为null
+      // if (tx.from && tx.to) {
+      //   txPushArr.push(tx)
+      // }
+      tx._id = tx.raw.hash
+      return tx
+    }).filter(Boolean)
 
     // if (txErr.length !== 0) {
     //   await app.model.Test.create({
@@ -224,21 +216,22 @@ class EthQueue {
     //     txArr,
     //   });
     // }
-    const startWeek = moment().startOf('w').unix()
+    // const startWeek = moment().startOf('w').unix()
+
     try {
-      await app.model.TxEth.at(startWeek).create(txArr)
+      await app.model.EthTx.create(txs)
       job.finished().then(() => {
         job.remove()
       })
-      app.queue.eth.filterTxs({
-        txs: txPushArr,
-        type: 'confirmed'
-      })
+      // app.queue.eth.filterTxs({
+      //   txs: txPushArr,
+      //   type: 'confirmed'
+      // })
 
       return
-    } catch (error) {
-      console.log(error)
-      throw error
+    } catch (e) {
+      console.warn(e)
+      throw e
     }
   }
 
