@@ -102,8 +102,6 @@ class Eth extends Subscription {
           }
 
           const tx = JSON.parse(txJson)
-          tx._id = tx.raw.hash
-
           this.app.queue.eth.redisToMongo(tx)
         })
       }

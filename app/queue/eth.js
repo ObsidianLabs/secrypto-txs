@@ -183,6 +183,7 @@ class EthQueue {
     //   });
     // }
     // const startWeek = moment().startOf('w').unix()
+    data._id = data.raw.hash
     try {
       await app.model.EthTx.create(data)
       job.finished().then(() => {
@@ -194,6 +195,9 @@ class EthQueue {
       // })
     } catch (e) {
       console.warn(e)
+      job.finished().then(() => {
+        job.remove()
+      })
       throw e
     }
   }
