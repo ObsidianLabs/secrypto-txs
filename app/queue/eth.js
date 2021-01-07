@@ -150,7 +150,7 @@ class EthQueue {
     const hashs = data.txs.map(txHash => `eth:tx:${txHash}`)
     const cachedTxs = await app.redis.mget(hashs)
 
-    await Promise.all(cachedTxs.forEach(async txJson => {
+    await Promise.all(cachedTxs.map(async txJson => {
       if (!txJson) {
         return
       }
