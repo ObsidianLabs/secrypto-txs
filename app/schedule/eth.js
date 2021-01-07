@@ -87,6 +87,9 @@ class Eth extends Subscription {
     }
 
     if (!block.confirmed) {
+      block.confirmed = true
+      await redis.set(`eth:block:${block.hash}`, JSON.stringify(block), 'EX', config.redisBlockExpire)
+
       if (!Array.isArray(block.transactions)) {
         console.warn(`Block ${hash || blockNumber} has empty transactions.`)
         console.warn(typeof block.transactions)
@@ -104,8 +107,6 @@ class Eth extends Subscription {
           this.app.queue.eth.redisToMongo(tx)
         })
       }
-      block.confirmed = true
-      await redis.set(`eth:block:${block.hash}`, JSON.stringify(block), 'EX', config.redisBlockExpire)
       await this.confirmBacktrack(null, block.parentHash, iteration + 1)
     }
   }
