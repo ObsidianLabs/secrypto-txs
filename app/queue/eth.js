@@ -156,7 +156,8 @@ class EthQueue {
       }
       const tx = JSON.parse(txJson)
 
-      const isRelavent = await Promise.all(tx.relevant.map(addr => app.redis.sismember('eth:address:set', addr)))
+      const key = `eth:trackings:${tx.token || 'eth'}`
+      const isRelavent = await Promise.all(tx.relevant.map(addr => app.redis.sismember(key, addr)))
       if (!isRelavent.every(x => !x)) {
         app.queue.eth.redisToMongo(tx)
       }
@@ -178,9 +179,9 @@ class EthQueue {
       // const startWeek = moment().startOf('w').unix()
       await app.model.EthTx.create(data)
     }
-    job.finished().then(() => {
-      job.remove()
-    })
+    // job.finished().then(() => {
+    //   job.remove()
+    // })
   }
 
   // async appPush (data, app, job) {
