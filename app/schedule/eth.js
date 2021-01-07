@@ -88,7 +88,7 @@ class Eth extends Subscription {
       block.confirmed = true
       await redis.set(`eth:block:${block.hash}`, JSON.stringify(block), 'EX', config.redisBlockExpire)
 
-      console.log(block.transactions)
+      console.log(block)
       console.log(Array.isArray(block.transactions))
       if (!Array.isArray(block.transactions)) {
         console.warn(`Block ${hash || blockNumber} has empty transactions.`)
