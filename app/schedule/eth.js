@@ -71,14 +71,12 @@ class Eth extends Subscription {
     }
 
     let block
-    if (hash) {
-      const blockJson = await redis.get(`eth:block:${hash}`)
-      if (!blockJson) {
-        return
-      }
-      block = JSON.parse(blockJson)
-    } else if (blockNumber) {
+    if (blockNumber) {
       block = await this.getBlock(blockNumber)
+    }
+    const blockJson = await redis.get(`eth:block:${block ? block.hash : hash}`)
+    if (blockJson) {
+      block = JSON.parse(blockJson)
     }
 
     if (!block) {
