@@ -130,7 +130,6 @@ class EthQueue {
           tx.relevant = [from, erc20Receiver]
           tx.tokenValue = tokenValue
         }
-        console.log(tx)
       }
     }
 
@@ -190,19 +189,10 @@ class EthQueue {
     // const txErr = [];
     const txs = cachedTxs.map((txJson, k) => {
       if (!txJson) {
-        // txErr.push({
-        //   tx,
-        //   k,
-        //   txHash: txHashs[k],
-        // });
         return
       }
 
       const tx = JSON.parse(txJson)
-      // TODO:这里之过滤出了ETH转账，合约交易 TO为null
-      // if (tx.from && tx.to) {
-      //   txPushArr.push(tx)
-      // }
       tx._id = tx.raw.hash
       return tx
     }).filter(Boolean)
