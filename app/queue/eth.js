@@ -130,6 +130,7 @@ class EthQueue {
           tx.relevant = [from, erc20Receiver]
           tx.tokenValue = tokenValue
         }
+        console.log(tx)
       }
     }
 
