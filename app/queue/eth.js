@@ -184,22 +184,19 @@ class EthQueue {
     // }
     // const startWeek = moment().startOf('w').unix()
     data._id = data.raw.hash
-    try {
+    const existed = app.model.EthTx.findById(data._id)
+    if (existed) {
+      console.warn(`dup tx: ${data._id}\n${data.raw.blockNumber} ${data.raw.blockHash}\n${existed.raw.blockNumber} ${existed.raw.blockHash}\n`)
+    } else {
       await app.model.EthTx.create(data)
-      job.finished().then(() => {
-        job.remove()
-      })
-      // app.queue.eth.filterTxs({
-      //   txs: txPushArr,
-      //   type: 'confirmed'
-      // })
-    } catch (e) {
-      console.warn(e)
-      job.finished().then(() => {
-        job.remove()
-      })
-      throw e
     }
+    job.finished().then(() => {
+      job.remove()
+    })
+    // app.queue.eth.filterTxs({
+    //   txs: txPushArr,
+    //   type: 'confirmed'
+    // })
   }
 
   // async appPush (data, app, job) {
