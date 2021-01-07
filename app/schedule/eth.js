@@ -65,6 +65,7 @@ class Eth extends Subscription {
   }
 
   async confirmBacktrack (blockNumber, hash, iteration = 0) {
+    console.log(`Confirming block ${hash || blockNumber}`)
     const { redis, config } = this.app
     if (iteration >= config.confirmBacktrackIteration) {
       return
@@ -88,11 +89,12 @@ class Eth extends Subscription {
     if (!block.confirmed) {
       if (Array.isArray(block.transactions)) {
         console.warn(`Block ${hash || blockNumber} has empty transactions.`)
+        console.warn(block)
       } else {
         this.app.queue.eth.redisToMongo({ transactions: block.transactions })
-        block.confirmed = true
-        await redis.set(`eth:block:${block.hash}`, JSON.stringify(block), 'EX', config.redisBlockExpire)
       }
+      block.confirmed = true
+      await redis.set(`eth:block:${block.hash}`, JSON.stringify(block), 'EX', config.redisBlockExpire)
       await this.confirmBacktrack(null, block.parentHash, iteration + 1)
     }
   }

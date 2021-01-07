@@ -122,9 +122,9 @@ class EthQueue {
           throw e
         }
         console.warn(decodedData)
-        if (decodedData.name === 'transfer') {
+        if (decodedData.method === 'transfer') {
           const erc20Receiver = `0x${decodedData.inputs[0].toLowerCase()}`
-          const tokenValue = decodedData.inputs[1]
+          const tokenValue = decodedData.inputs[1].toString()
           tx.token = to
           tx.symbol = erc20.symbol
           tx.decimals = erc20.decimals
