@@ -33,7 +33,7 @@ class Eth extends Subscription {
       }
     }
 
-    await redis.set(`eth:block:${block.hash}`, JSON.stringify(block), 'EX', config.redisBlockExpire)
+    await redis.set(`eth:block:${block.hash}`, JSON.stringify({ ...block, transactions }), 'EX', config.redisBlockExpire)
     // TODO:Queue Task eth.cacheTransaction
     this.cacheTransaction(transactions, block)
     const parentBlockExist = await redis.exists(`eth:block:${block.parentHash}`)
