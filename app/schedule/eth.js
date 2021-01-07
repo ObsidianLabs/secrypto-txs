@@ -3,7 +3,7 @@ const { Subscription } = require('egg')
 class Eth extends Subscription {
   static get schedule () {
     return {
-      interval: '5s', // 5s 间隔
+      interval: '10s', // 10s 间隔
       type: 'worker', // 每台机器上只有一个 worker 会执行这个定时任务
       immediate: true
       // disable: true,
