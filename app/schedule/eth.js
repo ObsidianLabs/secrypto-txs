@@ -91,16 +91,7 @@ class Eth extends Subscription {
       if (!Array.isArray(block.transactions)) {
         console.warn(`Block ${hash || blockNumber} has empty transactions.`)
       } else {
-        const hashs = block.transactions.map(txHash => `eth:tx:${txHash}`)
-        const cachedTxs = await this.app.redis.mget(hashs)
-        cachedTxs.forEach(txJson => {
-          if (!txJson) {
-            return
-          }
-
-          const tx = JSON.parse(txJson)
-          this.app.queue.eth.redisToMongo(tx)
-        })
+        this.app.queue.eth.filterTxs({ txs: block.transactions })
       }
       await this.confirmBacktrack(null, block.parentHash, iteration + 1)
     }

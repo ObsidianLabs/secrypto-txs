@@ -147,25 +147,20 @@ class EthQueue {
   }
 
   async filterTxs (data, app, job) {
-    const { txs, type } = data
-    const { redis } = app
-    const txsFilter = []
-    for (let i = 0; i < txs.length; i++) {
-      const tx = txs[i]
-      const task = tx.relevant.map(addr => {
-        return redis.sismember('eth:address:set', (addr && addr.toLowerCase()) || null)
-      })
-      const addrExistses = await Promise.all(task)
+    const hashs = data.txs.map(txHash => `eth:tx:${txHash}`)
+    const cachedTxs = await this.app.redis.mget(hashs)
 
-      if (addrExistses.indexOf(1) >= 0) {
-        tx.addrExistses = addrExistses
-        txsFilter.push(tx)
+    await Promise.all(cachedTxs.forEach(async txJson => {
+      if (!txJson) {
+        return
       }
-    }
+      const tx = JSON.parse(txJson)
 
-    txsFilter.forEach(tx => {
-      // app.queue.eth.appPush({ tx, type })
-    })
+      const isRelavent = await Promise.all(tx.relevant.map(addr => app.redis.sismember('eth:address:set', addr)))
+      if (!isRelavent.every(x => !x)) {
+        app.queue.eth.redisToMongo(tx)
+      }
+    }))
 
     job.finished().then(() => {
       job.remove()
@@ -173,16 +168,6 @@ class EthQueue {
   }
 
   async redisToMongo (data, app, job) {
-    // if (txErr.length !== 0) {
-    //   await app.model.Test.create({
-    //     blockNumber,
-    //     blockHash,
-    //     timestamp,
-    //     txErr,
-    //     txArr,
-    //   });
-    // }
-    // const startWeek = moment().startOf('w').unix()
     data._id = data.raw.hash
     const existed = await app.model.EthTx.findById(data._id)
     if (existed) {
@@ -190,15 +175,12 @@ class EthQueue {
       const { blockNumber: rawNumber, blockHash: rawHash } = existed.raw || {}
       console.warn(`dup tx: ${data._id}\n${blockNumber} ${blockHash}\n${rawNumber} ${rawHash}\n`)
     } else {
+      // const startWeek = moment().startOf('w').unix()
       await app.model.EthTx.create(data)
     }
     job.finished().then(() => {
       job.remove()
     })
-    // app.queue.eth.filterTxs({
-    //   txs: txPushArr,
-    //   type: 'confirmed'
-    // })
   }
 
   // async appPush (data, app, job) {
