@@ -121,7 +121,6 @@ class EthQueue {
           await job.update({ ...data, raw: rawTx, error: e.message })
           throw e
         }
-        console.warn(decodedData)
         if (decodedData.method === 'transfer') {
           const erc20Receiver = `0x${decodedData.inputs[0].toLowerCase()}`
           const tokenValue = decodedData.inputs[1].toString()
