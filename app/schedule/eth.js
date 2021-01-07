@@ -10,7 +10,6 @@ class Eth extends Subscription {
     }
   }
 
-  // subscribe 是真正定时任务执行时被运行的函数
   async subscribe () {
     const newBlockNumber = await this.ctx.app.web3.eth.getBlockNumber()
     this.backtrack(newBlockNumber)
@@ -34,7 +33,6 @@ class Eth extends Subscription {
     }
 
     await redis.set(`eth:block:${block.hash}`, JSON.stringify({ ...block, transactions }), 'EX', config.redisBlockExpire)
-    // TODO:Queue Task eth.cacheTransaction
     this.cacheTransaction(transactions, block)
     const parentBlockExist = await redis.exists(`eth:block:${block.parentHash}`)
     if (parentBlockExist) {
@@ -58,7 +56,6 @@ class Eth extends Subscription {
   }
 
   async cacheTransaction (taransactions, block) {
-    // TODO:执行cacheTransaction task
     taransactions.forEach(txHash => {
       this.app.queue.eth.cacheTransaction({ txHash, block })
     })
