@@ -133,8 +133,9 @@ class EthQueue {
       }
     }
 
-    await redis.set(redisKey, JSON.stringify(tx), 'EX', config.redisTxExpire)
-    // TODO:这里之过滤出了ETH转账，合约交易 TO为null
+    if (tx.value !== '0' || tx.tokenValue !== '0') {
+      await redis.set(redisKey, JSON.stringify(tx), 'EX', config.redisTxExpire)
+    }
 
     // app.queue.eth.filterTxs({
     //   txs: [tx],
