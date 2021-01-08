@@ -133,7 +133,7 @@ class EthQueue {
       }
     }
 
-    if (tx.value !== '0' || tx.tokenValue !== '0') {
+    if (tx.value !== '0' || (tx.tokenValue && tx.tokenValue !== '0')) {
       await redis.set(redisKey, JSON.stringify(tx), 'EX', config.redisTxExpire)
     }
 
