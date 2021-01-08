@@ -75,7 +75,7 @@ function loadQueueToApp (app) {
         return true
       })
       queue.process('cleanFailed', job => {
-        queue.clean(1/3 * 3600 * 1000, 'failed')
+        queue.clean(3 * 3600 * 1000, 'failed')
         job.finished().then(() => {
           job.remove()
         })

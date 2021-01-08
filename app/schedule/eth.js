@@ -88,7 +88,7 @@ class Eth extends Subscription {
       if (!Array.isArray(block.transactions)) {
         console.warn(`Block ${hash || blockNumber} has empty transactions.`)
       } else {
-        this.app.queue.eth.filterTxs({ txs: block.transactions })
+        this.app.queue.eth.filterTxs({ hash: block.hash, txs: block.transactions })
       }
       await this.confirmBacktrack(null, block.parentHash, iteration + 1)
     }
