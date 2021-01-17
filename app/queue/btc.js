@@ -50,7 +50,7 @@ class BtcQueue {
     }
 
     await redis.set(redisKey, JSON.stringify(tx), 'EX', config.redisTxExpire)
-    await redis.sadd(`btc:txs_by_hash:${blockHash}`, raw.hash)
+    await redis.sadd(`btc:txs_by_hash:${blockHash}`, raw.hash, 'EX', config.redisBlockExpire)
 
     job.finished().then(() => {
       job.remove()
