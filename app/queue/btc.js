@@ -9,12 +9,12 @@ class BtcQueue {
       return
     }
     const redisKey = `btc:tx:${raw.hash}`
-    if (await redis.exists(redisKey)) {
-      job.finished().then(() => {
-        job.remove()
-      })
-      return
-    }
+    // if (await redis.exists(redisKey)) {
+    //   job.finished().then(() => {
+    //     job.remove()
+    //   })
+    //   return
+    // }
 
     const ins = {}
     const outs = {}

@@ -23,7 +23,7 @@ class Btc extends Subscription {
     }
     const blockExist = await redis.exists(`btc:block:${hash}`)
     if (blockExist) {
-      return
+      // return
     }
     const { tx, ...block } = await this.getBlock(hash)
     if (!block) {
@@ -34,7 +34,7 @@ class Btc extends Subscription {
     this.cacheTransaction(tx, hash)
     const parentBlockExist = await redis.exists(`btc:block:${block.prev_block}`)
     if (parentBlockExist) {
-      return
+      // return
     }
     await this.backtrack(block.prev_block, iteration + 1)
   }
