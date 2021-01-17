@@ -1,19 +1,19 @@
 const { Subscription } = require('egg')
 
-class EthTracking extends Subscription {
+class BtcTracking extends Subscription {
   static get schedule () {
     return {
       interval: '30s',
       type: 'worker',
       immediate: true
-      // disable: true,
+      // disable: true
     }
   }
 
   async subscribe () {
-    const trackings = await this.ctx.app.model.EthTracking.find()
+    const trackings = await this.ctx.app.model.BtcTracking.find()
     await Promise.all(trackings.forEach(async item => {
-      const key = `eth:trackings:${item.token || 'eth'}`
+      const key = 'btc:trackings'
       if (item.track) {
         await this.ctx.app.redis.sadd(key, item.address)
       } else {
@@ -23,4 +23,4 @@ class EthTracking extends Subscription {
   }
 }
 
-module.exports = EthTracking
+module.exports = BtcTracking
