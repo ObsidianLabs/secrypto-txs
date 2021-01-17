@@ -14,7 +14,10 @@ const web3s = urls.map(url => new Web3(url))
 
 module.exports = {
   get web3 () {
-    return web3s[Math.floor(Math.random() * n)]
+    const index = Math.floor(Math.random() * n)
+    const web3 = web3s[index]
+    web3._url = urls[index]
+    return web3
   },
   async sleep (duration = 500) {
     return new Promise(resolve => setTimeout(resolve, duration))

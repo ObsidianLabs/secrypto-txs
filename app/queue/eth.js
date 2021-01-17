@@ -42,7 +42,14 @@ class EthQueue {
       if (data.wait) {
         await app.sleep(data.wait)
       }
-      rawTx = await web3.eth.getTransaction(txHash)
+      try {
+        rawTx = await web3.eth.getTransaction(txHash)
+      } catch (e) {
+        if (e.message.indexOf('daily request count exceeded') > -1) {
+          await job.update({ ...data, url: web3._url })
+        }
+        throw e
+      }
     }
     await job.update({ ...data, raw: rawTx })
 
