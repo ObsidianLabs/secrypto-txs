@@ -16,9 +16,37 @@ class BtcQueue {
       return
     }
 
+    const ins = {}
+    const outs = {}
+    data.raw.inputs.forEach(input => {
+      if (input.prev_out && input.prev_out.addr) {
+        if (!ins[input.prev_out.addr]) {
+          ins[input.prev_out.addr] = 0
+        }
+        ins[input.prev_out.addr] += input.prev_out.value
+      }
+    })
+    data.raw.out.forEach(out => {
+      if (out.addr) {
+        if (!outs[out.addr]) {
+          outs[out.addr] = 0
+        }
+        outs[out.addr] += out.value
+      }
+    })
+    const delta = { ...outs }
+    Object.keys(outs).forEach(key => {
+      if (ins[key]) {
+        delta[key] -= ins[key]
+      }
+    })
+
     const tx = {
       relevant: raw.out.map(utxo => utxo.addr),
-      raw
+      raw,
+      ins,
+      outs,
+      delta
     }
 
     await redis.set(redisKey, JSON.stringify(tx), 'EX', config.redisTxExpire)
