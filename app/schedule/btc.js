@@ -13,7 +13,7 @@ class Btc extends Subscription {
   async subscribe () {
     const blockSummary = await this.ctx.service.btc.getLatestBlock()
     this.backtrack(blockSummary.hash)
-    this.backtrackAndConfirmBlock(blockSummary.hash, 3)
+    this.backtrackAndConfirmBlock(blockSummary.hash, 6)
   }
 
   async backtrack (hash, iteration = 0) {
