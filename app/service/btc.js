@@ -7,7 +7,6 @@ class BtcService extends Service {
   }
 
   async getBlockByHash (blockHash) {
-    console.log(blockHash)
     const result = await this.ctx.curl(`https://blockchain.info/rawblock/${blockHash}`, {
       dataType: 'json',
       timeout: 30000
