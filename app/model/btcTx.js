@@ -4,9 +4,9 @@ module.exports = app => {
   const BtcTxSchema = new mongoose.Schema(
     {
       _id: String,
-      from: String,
-      to: String,
-      value: String,
+      // from: String,
+      // to: String,
+      // value: String,
       relevant: Array,
       raw: Object
     },

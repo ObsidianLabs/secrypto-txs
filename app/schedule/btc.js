@@ -3,7 +3,7 @@ const { Subscription } = require('egg')
 class Btc extends Subscription {
   static get schedule () {
     return {
-      interval: '10s', // 10s 间隔
+      interval: '60s', // 60s 间隔
       type: 'worker', // 每台机器上只有一个 worker 会执行这个定时任务
       immediate: true
       // disable: true,
@@ -13,7 +13,7 @@ class Btc extends Subscription {
   async subscribe () {
     const blockSummary = await this.ctx.service.btc.getLatestBlock()
     this.backtrack(blockSummary.hash)
-    // this.confirmBacktrack(newBlockNumber - 20)
+    this.backtrackAndConfirmBlock(blockSummary.hash, 6)
   }
 
   async backtrack (hash, iteration = 0) {
@@ -31,7 +31,7 @@ class Btc extends Subscription {
     }
 
     await redis.set(`btc:block:${hash}`, JSON.stringify(block), 'EX', config.redisBlockExpire)
-    this.cacheTransaction(tx)
+    this.cacheTransaction(tx, hash)
     const parentBlockExist = await redis.exists(`btc:block:${block.prev_block}`)
     if (parentBlockExist) {
       return
@@ -53,42 +53,50 @@ class Btc extends Subscription {
     return null
   }
 
-  async cacheTransaction (taransactions) {
-    taransactions.forEach(tx => {
-      this.app.queue.btc.cacheTransaction({ raw: tx })
+  async cacheTransaction (taransactions, blockHash) {
+    taransactions.forEach(raw => {
+      this.app.queue.btc.cacheTransaction({ blockHash, raw })
     })
   }
 
-  async confirmBacktrack (blockNumber, hash, iteration = 0) {
+  async backtrackAndConfirmBlock (hash, step) {
+    if (step <= 0) {
+      await this.confirmBlock(hash)
+      return
+    }
+
+    const blockJson = await this.app.redis.get(`btc:block:${hash}`)
+    if (!blockJson) {
+      return
+    }
+    const block = JSON.parse(blockJson)
+    if (block && block.prev_block) {
+      await this.backtrackAndConfirmBlock(block.prev_block, step - 1)
+    }
+  }
+
+  async confirmBlock (hash, iteration = 0) {
     const { redis, config } = this.app
     if (iteration >= config.confirmBacktrackIteration) {
       return
     }
 
-    let block
-    if (blockNumber) {
-      block = await this.getBlock(blockNumber)
+    const blockJson = await redis.get(`btc:block:${hash}`)
+    if (!blockJson) {
+      return
     }
-    const blockJson = await redis.get(`btc:block:${block ? block.hash : hash}`)
-    if (blockJson) {
-      block = JSON.parse(blockJson)
-    }
-
+    const block = JSON.parse(blockJson)
     if (!block) {
       return
     }
 
     if (!block.confirmed) {
-      console.log(`Confirming block ${block.number} ${block.hash}`)
+      console.log(`Confirming block ${block.height} ${hash}`)
       block.confirmed = true
-      await redis.set(`eth:block:${block.hash}`, JSON.stringify(block), 'EX', config.redisBlockExpire)
+      await redis.set(`btc:block:${hash}`, JSON.stringify(block), 'EX', config.redisBlockExpire)
 
-      if (!Array.isArray(block.transactions)) {
-        console.warn(`Block ${hash || blockNumber} has empty transactions.`)
-      } else {
-        this.app.queue.btc.filterTxs({ hash: block.hash, txs: block.transactions })
-      }
-      await this.confirmBacktrack(null, block.parentHash, iteration + 1)
+      this.app.queue.btc.filterTxs({ blockHash: hash })
+      await this.confirmBlock(block.prev_block, iteration + 1)
     }
   }
 }

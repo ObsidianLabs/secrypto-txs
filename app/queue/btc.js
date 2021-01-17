@@ -1,6 +1,6 @@
 class BtcQueue {
   async cacheTransaction (data, app, job) {
-    const { raw } = data
+    const { blockHash, raw } = data
     const { redis, config } = app
     if (!raw) {
       job.finished().then(() => {
@@ -22,14 +22,20 @@ class BtcQueue {
     }
 
     await redis.set(redisKey, JSON.stringify(tx), 'EX', config.redisTxExpire)
+    await redis.sadd(`btc:txs_by_hash:${blockHash}`, raw.hash)
 
-    // job.finished().then(() => {
-    //   job.remove()
-    // })
+    job.finished().then(() => {
+      job.remove()
+    })
   }
 
   async filterTxs (data, app, job) {
-    const hashs = data.txs.map(txHash => `btc:tx:${txHash}`)
+    const { blockHash } = data
+    const { redis } = app
+
+    const members = await redis.smembers(`btc:txs_by_hash:${blockHash}`)
+
+    const hashs = members.map(txHash => `btc:tx:${txHash}`)
     const cachedTxs = await app.redis.mget(hashs)
 
     await Promise.all(cachedTxs.map(async txJson => {
