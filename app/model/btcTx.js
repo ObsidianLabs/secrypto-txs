@@ -5,8 +5,8 @@ module.exports = app => {
     {
       _id: String,
       // from: String,
-      // to: String,
-      // value: String,
+      to: String,
+      value: String,
       relevant: Array,
       raw: Object
     },

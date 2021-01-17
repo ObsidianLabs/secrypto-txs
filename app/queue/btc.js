@@ -74,8 +74,9 @@ class BtcQueue {
 
       const key = 'btc:trackings'
       const isRelavent = await Promise.all(tx.relevant.map(addr => app.redis.sismember(key, addr)))
-      if (!isRelavent.every(x => !x)) {
-        app.queue.btc.redisToMongo(tx)
+      const match = tx.relevant.filter((_, index) => isRelavent[index])
+      if (match.length) {
+        app.queue.btc.redisToMongo({ tx, match })
       }
     }))
 
@@ -85,16 +86,33 @@ class BtcQueue {
   }
 
   async redisToMongo (data, app, job) {
-    data._id = data.raw.hash
-    const existed = await app.model.BtcTx.findById(data._id)
-    if (existed) {
-      const { block_height: blockHeight, hash } = data.raw || {}
-      const { block_height: rawBlockHeight, hash: rawHash } = existed.raw || {}
-      console.warn(`dup tx: ${data._id}\n${blockHeight} ${hash}\n${rawBlockHeight} ${rawHash}\n`)
-    } else {
-      // const startWeek = moment().startOf('w').unix()
-      await app.model.BtcTx.create(data)
+    const { tx, match } = data
+    if (!tx.delta) {
+      return
     }
+
+    await Promise.all(match.map(async addr => {
+      if (!tx.delta[addr]) {
+        return
+      }
+
+      const obj = {
+        _id: tx.raw.hash,
+        ...tx,
+        to: addr,
+        value: tx.delta[addr]
+      }
+      const existed = await app.model.BtcTx.findById(obj._id)
+      if (existed) {
+        const { block_height: blockHeight, hash } = obj.raw || {}
+        const { block_height: rawBlockHeight, hash: rawHash } = existed.raw || {}
+        console.warn(`dup tx: ${obj._id}\n${blockHeight} ${hash}\n${rawBlockHeight} ${rawHash}\n`)
+      } else {
+        // const startWeek = moment().startOf('w').unix()
+        await app.model.BtcTx.create(obj)
+      }
+    }))
+
     // job.finished().then(() => {
     //   job.remove()
     // })
