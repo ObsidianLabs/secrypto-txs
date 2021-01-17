@@ -60,9 +60,9 @@ class BtcQueue {
     data._id = data.raw.hash
     const existed = await app.model.BtcTx.findById(data._id)
     if (existed) {
-      const { blockNumber, blockHash } = data.raw || {}
-      const { blockNumber: rawNumber, blockHash: rawHash } = existed.raw || {}
-      console.warn(`dup tx: ${data._id}\n${blockNumber} ${blockHash}\n${rawNumber} ${rawHash}\n`)
+      const { block_height: blockHeight, hash } = data.raw || {}
+      const { block_height: rawBlockHeight, hash: rawHash } = existed.raw || {}
+      console.warn(`dup tx: ${data._id}\n${blockHeight} ${hash}\n${rawBlockHeight} ${rawHash}\n`)
     } else {
       // const startWeek = moment().startOf('w').unix()
       await app.model.BtcTx.create(data)
