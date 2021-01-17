@@ -25,13 +25,13 @@ class Btc extends Subscription {
     if (blockExist) {
       return
     }
-    const block = await this.getBlock(hash)
+    const { tx, ...block } = await this.getBlock(hash)
     if (!block) {
       return
     }
 
     await redis.set(`btc:block:${hash}`, JSON.stringify(block), 'EX', config.redisBlockExpire)
-    this.cacheTransaction(block.tx)
+    this.cacheTransaction(tx)
     const parentBlockExist = await redis.exists(`btc:block:${block.prev_block}`)
     if (parentBlockExist) {
       return
