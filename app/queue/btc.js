@@ -18,7 +18,7 @@ class BtcQueue {
 
     const ins = {}
     const outs = {}
-    data.raw.inputs.forEach(input => {
+    raw.inputs.forEach(input => {
       if (input.prev_out && input.prev_out.addr) {
         if (!ins[input.prev_out.addr]) {
           ins[input.prev_out.addr] = 0
@@ -26,7 +26,7 @@ class BtcQueue {
         ins[input.prev_out.addr] += input.prev_out.value
       }
     })
-    data.raw.out.forEach(out => {
+    raw.out.forEach(out => {
       if (out.addr) {
         if (!outs[out.addr]) {
           outs[out.addr] = 0
@@ -35,7 +35,7 @@ class BtcQueue {
       }
     })
     const delta = { ...outs }
-    Object.keys(outs).forEach(key => {
+    Object.keys(delta).forEach(key => {
       if (ins[key]) {
         delta[key] -= ins[key]
       }
