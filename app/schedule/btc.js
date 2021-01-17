@@ -91,7 +91,7 @@ class Btc extends Subscription {
     }
 
     if (!block.confirmed) {
-      console.log(`Confirming block ${block.height} ${hash}`)
+      console.log(`Confirming BTC block ${block.height} ${hash}`)
       block.confirmed = true
       await redis.set(`btc:block:${hash}`, JSON.stringify(block), 'EX', config.redisBlockExpire)
 
