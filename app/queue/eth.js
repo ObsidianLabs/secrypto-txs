@@ -19,8 +19,17 @@ const decoder = new InputDataDecoder(erc20AbiJson)
 class EthQueue {
   async cacheTransaction (data, app, job) {
     const { txHash } = data
-    const { redis, config, web3, model } = app
-    // const { fromWei, hexToNumberString, BN, isAddress, isBigNumber, isBN } = web3.utils;
+    const { redis, config, model } = app
+
+    let web3
+    while (!web3) {
+      const tmpWeb3 = app.web3
+      const exceeded = await redis.get(`web3:${tmpWeb3._url}`)
+      if (!exceeded) {
+        web3 = tmpWeb3
+      }
+    }
+
     if (!txHash) {
       job.finished().then(() => {
         job.remove()
@@ -46,7 +55,8 @@ class EthQueue {
         rawTx = await web3.eth.getTransaction(txHash)
       } catch (e) {
         if (e.message.indexOf('daily request count exceeded') > -1) {
-          await job.update({ ...data, url: web3._url })
+          await redis.set(`web3:${web3._url}`, 'exceeded', 'EX', 3600)
+          await job.update({ ...data, index: web3._index, url: web3._url })
         }
         throw e
       }

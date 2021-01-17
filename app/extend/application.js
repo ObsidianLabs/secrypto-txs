@@ -16,6 +16,7 @@ module.exports = {
   get web3 () {
     const index = Math.floor(Math.random() * n)
     const web3 = web3s[index]
+    web3._index = index
     web3._url = urls[index]
     return web3
   },
