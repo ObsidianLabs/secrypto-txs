@@ -142,6 +142,7 @@ class EthQueue {
           const erc20Receiver = `0x${decodedData.inputs[0].toLowerCase()}`
           const tokenValue = decodedData.inputs[1].toString()
           tx.token = to
+          tx.to = erc20Receiver
           tx.symbol = erc20.symbol
           tx.decimals = erc20.decimals
           tx.relevant = [from, erc20Receiver]
